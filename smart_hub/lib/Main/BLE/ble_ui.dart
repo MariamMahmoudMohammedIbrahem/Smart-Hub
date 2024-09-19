@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_hub/Components/alerts.dart';
 import 'package:smart_hub/Main/home/home_screen.dart';
 import 'dart:async';
-
-import '../../Components/alerts.dart';
 import '../../Components/ble_alerts.dart'; // For Timer functionality
 
 /**-----------------Global Variables-------------------------**/
@@ -21,10 +22,33 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     with SingleTickerProviderStateMixin {
   /**---------------------Local Variables Section----------------------**/
   final flutterReactiveBle = FlutterReactiveBle();
+  late StreamSubscription<DiscoveredDevice> _scanStream;
   late Stream<BleStatus> _bleStatusStream;
-  List<Map<String, dynamic>> discoveredDevices = [];
+  List<DiscoveredDevice> _foundDevices = [];
+  late QualifiedCharacteristic _txCharacteristic;
+  late DiscoveredDevice _connectedDevice;
+  late StreamSubscription<ConnectionStateUpdate> _connection;
+  bool _isConnected = false;
   bool isScanning = false;
   Timer? _scanTimer;
+  Map<String, bool> isLoadingMap = {};
+  Map<String, bool> isPairedMap = {};
+
+  bool devicePaired = false;
+  String? pairedDeviceName;
+  String? pairedDeviceId;
+
+  /* Local storage  */
+  late final SharedPreferences prefs;
+
+  // UUIDs for the HM-10
+  final String _serviceUuid = "0000ffe0-0000-1000-8000-00805f9b34fb";
+  final String _txUuid =
+      "0000ffe1-0000-1000-8000-00805f9b34fb"; // Tx characteristic UUID for writing
+
+  Map<String, StreamSubscription<ConnectionStateUpdate>> _subscriptions = {};
+  Map<String, bool> connectedDevices =
+      {}; // Track connection state by device ID
 
   // Animation controller for button feedback
   late AnimationController _controller;
@@ -49,26 +73,23 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   void startScan() {
     setState(() {
       isScanning = true;
-      discoveredDevices.clear(); // Clear previous devices
+      _foundDevices.clear(); // Clear previous devices
       _controller.forward(); // Start the heartbeat animation
     });
 
     // Start scanning for BLE devices
-    flutterReactiveBle.scanForDevices(withServices: []).listen((device) async {
-      //if (device.name.isNotEmpty)
-      {
-        final services = await getDeviceServices(device.id);
-        print(device.id);
-        // Add devices to the discovered list if not already present
-        setState(() {
-          if (!discoveredDevices.any((d) => d['device'].id == device.id)) {
-            discoveredDevices.add({'device': device, 'services': services});
-          }
-        });
-      }
+    _scanStream =
+        flutterReactiveBle.scanForDevices(withServices: []).listen((device) {
+      // Add devices to the discovered list if not already present
+      setState(() {
+        if (!_foundDevices.any((d) => d.id == device.id)) {
+          _foundDevices.add(device);
+        }
+      });
     }, onError: (e) {
       print("Error scanning for devices: $e");
       stopScan();
+      isScanning = false;
     });
 
     // Set a timer to stop the scan after 10 seconds
@@ -82,6 +103,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     setState(() {
       isScanning = false;
       _controller.stop(); // Stop heartbeat animation
+      _scanStream.cancel(); /* Stops Scanning */
     });
     // Cancel the timer if it's still running
     _scanTimer?.cancel();
@@ -96,6 +118,75 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   void onScanButtonPressed() {
     if (!isScanning) {
       startScan(); // Start scanning for devices
+    }
+  }
+
+  Future<void> disconnectDevice(String deviceId) async {
+    await _connection.cancel();
+    toastFun('Unpaired');
+    setState(() {
+      isPairedMap[deviceId] = false;
+    });
+  }
+
+  Future<void> saveToLocalStorage(DiscoveredDevice device) async {
+    await prefs.setString('ConnectedDevice', device.id); // save the device id
+  }
+
+  // Connect to a device
+  Future<void> _connectToDevice(DiscoveredDevice device) async {
+    setState(() {
+      _isConnected = false;
+      isLoadingMap[device.id] = true;
+      isPairedMap[device.id] = false;
+    });
+
+    try {
+      _connection = await flutterReactiveBle
+          .connectToDevice(
+        id: device.id,
+        connectionTimeout: const Duration(seconds: 10),
+      )
+          .listen((connectionState) {
+        if (connectionState.connectionState ==
+            DeviceConnectionState.connected) {
+          setState(() {
+            _connectedDevice = device;
+            _isConnected = true;
+            toastFun('Connected to ${device.name}');
+            isLoadingMap[device.id] = false;
+            isPairedMap[device.id] = true;
+            saveToLocalStorage(device);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => home_screen(
+                  connectionNUM: _connection,
+                  connectedDevice: device,
+                ),
+              ),
+            );
+          });
+
+          // Discover services and characteristics
+          _txCharacteristic = QualifiedCharacteristic(
+            serviceId: Uuid.parse(_serviceUuid),
+            characteristicId: Uuid.parse(_txUuid),
+            deviceId: device.id,
+          );
+        } else if (connectionState.connectionState ==
+            DeviceConnectionState.disconnected) {
+          setState(() {
+            isLoadingMap[device.id] = false;
+            isPairedMap[device.id] = false;
+            _isConnected = false;
+            toastFun('Not Connected');
+          });
+        }
+      });
+    } catch (e) {
+      print("Error while connecting: $e");
+      toastFun('Error while Connecting');
     }
   }
 
@@ -114,24 +205,29 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     }
   }
 
-  // Function to map service UUID to an icon
-  IconData getServiceIcon(String serviceUUID) {
-    // Add logic to match specific services UUIDs with icons
-    if (serviceUUID.contains("180D")) {
-      return Icons.favorite; // Example: Heart rate service
-    } else if (serviceUUID.contains("FFE0")) {
-      return Icons
-          .battery_charging_full; // Example: FFE0 is set for the smartHUB
+  // Function to map Device name to an icon
+  IconData getServiceIcon(String DeviceName) {
+    if (RegExp(r"^SmartHUB\b").hasMatch(DeviceName)) {
+      return Icons.battery_charging_full;
+    } else if (RegExp(r"^[TV]\b").hasMatch(DeviceName)) {
+      return Icons.connected_tv_rounded;
+    } else if (RegExp(r"^TV\b").hasMatch(DeviceName)) {
+      return Icons.connected_tv_rounded;
     } else {
-      return Icons.devices; // Default service icon
+      return Icons.bluetooth;
     }
+  }
+
+  Future<void> initPackages() async {
+    _bleStatusStream = flutterReactiveBle.statusStream;
+    prefs = await SharedPreferences.getInstance();
   }
 
   /**------------------------------------------------------------------**/
   @override
   void initState() {
     super.initState();
-    _bleStatusStream = flutterReactiveBle.statusStream;
+    initPackages();
     ble_enable_state_check();
 
     _controller = AnimationController(
@@ -159,6 +255,10 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   void dispose() {
     _controller.dispose();
     _scanTimer?.cancel();
+    _scanStream.cancel();
+    for (var subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
     super.dispose();
   }
 
@@ -173,7 +273,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             const SizedBox(height: 20),
             // Header
             const Text(
-              'SmartHub Bluetooth',
+              'Connection Setup',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 30,
@@ -223,29 +323,46 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 40),
             // Stop Button
             if (isScanning)
-              ElevatedButton(
-                onPressed: onStopButtonPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent, // Button color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Found your device ? ',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Stop Scan',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  ElevatedButton(
+                    onPressed: onStopButtonPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent, // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      'Stop Scan',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
             // Scanned Devices (cards)
+            SizedBox(
+              height: 10,
+            ),
             Expanded(
               child: ListView.builder(
-                itemCount: discoveredDevices.length,
+                itemCount: _foundDevices.length,
                 itemBuilder: (context, index) {
-                  final device = discoveredDevices[index]['device'];
-                  final services = discoveredDevices[index]['services'];
+                  final device = _foundDevices[index];
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(
@@ -271,8 +388,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                             children: [
                               // Service Icon
                               Icon(
-                                getServiceIcon(
-                                    services.isNotEmpty ? services[0] : ""),
+                                getServiceIcon(device.name),
                                 color: Colors.white,
                                 size: 40,
                               ),
@@ -281,18 +397,21 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    device.name,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                  Container(
+                                    width: 140,
+                                    child: Text(
+                                      device.name.isNotEmpty
+                                          ? device.name
+                                          : "Unknown device",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                   Text(
-                                    services.isNotEmpty
-                                        ? 'Service: ${services[0]}'
-                                        : 'No services found',
+                                    ("ID: ${device.id}\nRSSI: ${device.rssi}"),
                                     style: TextStyle(
                                       color: Colors.white54,
                                       fontSize: 14,
@@ -302,47 +421,66 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                               ),
                             ],
                           ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              // Pairing logic here
-                              if (!isScanning) {
-                                try {
-                                  // Attempt to connect to the device
-                                  final connectionStream = flutterReactiveBle
-                                      .connectToDevice(id: device.id);
-                                  toastFun('Connecting');
-                                  print(DeviceConnectionState.connected);
-                                  await connectionStream.firstWhere((event) =>
-                                      event.connectionState ==
-                                      DeviceConnectionState.connected);
-
-                                  //toastFun('Connected');
-                                  //Navigator.pushNamed(context, home_screen.id);
-                                  // If connected successfully, navigate to the home screen
-                                } catch (e) {
-                                  // Handle errors during connection
-                                  print("Failed to connect to device: $e");
-
-                                  // Show error message
-                                  toastFun('Failed to Connect');
-                                }
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.blueAccent, // Button color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: Text(
-                              'Pair',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          isPairedMap[device.id] == true
+                              ? ElevatedButton(
+                                  onPressed: () {
+                                    // Pairing logic here
+                                    if (!isScanning) {
+                                      disconnectDevice(device.id);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red, // Button color
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'unPair',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : isLoadingMap[device.id] == true
+                                  ? Container(
+                                      width: 77,
+                                      height: 40,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.blueAccent,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20)),
+                                      ),
+                                      child:
+                                          LoadingAnimationWidget.dotsTriangle(
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    )
+                                  : ElevatedButton(
+                                      onPressed: () {
+                                        // Pairing logic here
+                                        if (!isScanning) {
+                                          _connectToDevice(device);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Colors.blueAccent, // Button color
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Pair',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                         ],
                       ),
                     ),

@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
-
 import '../Components/alerts.dart';
+import '../Components/ble_alerts.dart';
 import '../Constants/AnimatedColors.dart';
+
+import 'home/home_screen.dart';
 
 class welcome_loading_screen extends StatefulWidget {
   static String id = 'welcome_loading_screen';
@@ -23,14 +28,36 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
   late AnimationController _controller;
   late Animation<double> _animation;
   late final FlutterReactiveBle flutterReactiveBle;
+  bool isScanning = false;
+  late StreamSubscription<DiscoveredDevice> _scanStream;
+  List<DiscoveredDevice> _foundDevices = [];
+  late DiscoveredDevice _connectedDevice;
+  late StreamSubscription<ConnectionStateUpdate> _connection;
 
+  bool _isConnected = false;
+  late String SavedDeviceID;
+  /* Local storage  */
+  late final SharedPreferences prefs;
+  /**-------------------------Functions---------------------------------**/
+/*
+  Title: Package init
+  Description: Initializing everything at first as well as checks on
+               previous connected device if it was found again then
+                just re-connect to it again
+ */
   Future<void> initPackage() async {
     flutterReactiveBle = FlutterReactiveBle();
-
+    prefs = await SharedPreferences.getInstance();
     // Check for Bluetooth and location permissions
     await _checkAndRequestPermissions();
+    await getFromLocalStorage();
   }
 
+/**-------------------------------------------------------------------**/
+  /*
+  Title: Permission checker
+  Description: checks if the required permission are given
+ */
   Future<void> _checkAndRequestPermissions() async {
     // Check and request Bluetooth and location permissions
     Map<Permission, PermissionStatus> statuses = await [
@@ -51,6 +78,11 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     }
   }
 
+  /**-------------------------------------------------------------------**/
+  /*
+  Title: Animation
+  Description: This function makes the animation of the battery
+ */
   void BatteryAnimation() {
     // Initialize the animation controller
     _controller = AnimationController(
@@ -67,11 +99,26 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
               _animation.value; // Update batteryLevel as animation progresses
 
           // Once the battery level reaches 100%, navigate to the Bluetooth screen
-          if (batteryLevel == 1 && blePermissionGranted == true) {
+          if (batteryLevel == 1 &&
+              blePermissionGranted == true &&
+              _isConnected == false) {
             Navigator.pushReplacementNamed(context, ble_ui_screen.id);
+          } /* In case the device was connected to another module then jump to the home screen */
+          else if (batteryLevel == 1 &&
+              blePermissionGranted == true &&
+              _isConnected == true) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => home_screen(
+                  connectionNUM: _connection,
+                  connectedDevice: _connectedDevice,
+                ),
+              ),
+            );
           }
-          /* If the battery level exceeds a cetain level then display something else */
-          if (batteryLevel >= 0.65) {
+          /* If the battery level exceeds a certain level then display something else */
+          if (batteryLevel >= 0.75) {
             isGlobalVariableTrue = true;
           }
         });
@@ -90,6 +137,67 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     } else {
       return Colors.green; // Above 80%, the color is green
     }
+  }
+
+  Future<void> getFromLocalStorage() async {
+    SavedDeviceID =
+        prefs.getString('ConnectedDevice') ?? 'null'; // save the device id
+    print(' SavedDeviceid =  $SavedDeviceID');
+
+    if (SavedDeviceID != 'null') {
+      startScan();
+    }
+  }
+
+  Future<void> _connectToDevice(DiscoveredDevice device) async {
+    setState(() {
+      _isConnected = false;
+    });
+
+    try {
+      _connection = await flutterReactiveBle
+          .connectToDevice(
+        id: device.id,
+        connectionTimeout: const Duration(seconds: 6),
+      )
+          .listen((connectionState) {
+        if (connectionState.connectionState ==
+            DeviceConnectionState.connected) {
+          setState(() {
+            _connectedDevice = device;
+            _isConnected = true;
+            toastFun('Connected to ${device.name}');
+          });
+        } else if (connectionState.connectionState ==
+            DeviceConnectionState.disconnected) {}
+      });
+    } catch (e) {
+      print("Error while connecting: $e");
+    }
+  }
+
+  void startScan() {
+    setState(() {
+      isScanning = true;
+      _foundDevices.clear(); // Clear previous devices
+    });
+
+    // Start scanning for BLE devices
+    _scanStream =
+        flutterReactiveBle.scanForDevices(withServices: []).listen((device) {
+      // Add devices to the discovered list if not already present
+      setState(() {
+        if (!_foundDevices.any((d) => d.id == device.id)) {
+          if (SavedDeviceID == device.id) {
+            _scanStream.cancel(); /* Stops Scanning */
+            _connectToDevice(device);
+          }
+        }
+      });
+    }, onError: (e) {
+      _scanStream.cancel(); /* Stops Scanning */
+      isScanning = false;
+    });
   }
 
   @override
@@ -154,19 +262,19 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
                                         'CHARGED',
                                         duration: const Duration(
                                             milliseconds:
-                                                500), // Duration per word
+                                                800), // Duration per word
                                       ),
                                       RotateAnimatedText(
                                         'POWERED',
                                         duration: const Duration(
                                             milliseconds:
-                                                500), // Duration per word
+                                                800), // Duration per word
                                       ),
                                       RotateAnimatedText(
                                         'READY',
                                         duration: const Duration(
                                             milliseconds:
-                                                500), // Duration per word
+                                                800), // Duration per word
                                       ),
                                     ],
                                   ),
