@@ -102,6 +102,7 @@ void errorCheck(BuildContext context, String errorMessage) {
 }
 
 void toastFun(String title) {
+  Fluttertoast.cancel();
   Fluttertoast.showToast(
     msg: title,
     gravity: ToastGravity.BOTTOM,

@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Components/alerts.dart';
 import 'package:smart_hub/Main/home/home_screen.dart';
 import 'dart:async';
-import '../../Components/ble_alerts.dart'; // For Timer functionality
+import '../../Components/ble_alerts.dart';
+import '../../Constants/ble_constants.dart'; // For Timer functionality
 
 /**-----------------Global Variables-------------------------**/
 bool g_ScreenReady = false;
@@ -25,7 +26,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   late StreamSubscription<DiscoveredDevice> _scanStream;
   late Stream<BleStatus> _bleStatusStream;
   List<DiscoveredDevice> _foundDevices = [];
-  late QualifiedCharacteristic _txCharacteristic;
+  late QualifiedCharacteristic _Characteristic;
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
   bool _isConnected = false;
@@ -40,11 +41,6 @@ class _ble_ui_screenState extends State<ble_ui_screen>
 
   /* Local storage  */
   late final SharedPreferences prefs;
-
-  // UUIDs for the HM-10
-  final String _serviceUuid = "0000ffe0-0000-1000-8000-00805f9b34fb";
-  final String _txUuid =
-      "0000ffe1-0000-1000-8000-00805f9b34fb"; // Tx characteristic UUID for writing
 
   Map<String, StreamSubscription<ConnectionStateUpdate>> _subscriptions = {};
   Map<String, bool> connectedDevices =
@@ -83,7 +79,9 @@ class _ble_ui_screenState extends State<ble_ui_screen>
       // Add devices to the discovered list if not already present
       setState(() {
         if (!_foundDevices.any((d) => d.id == device.id)) {
-          _foundDevices.add(device);
+          if (device.name != '') {
+            _foundDevices.add(device);
+          }
         }
       });
     }, onError: (e) {
@@ -151,6 +149,13 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         if (connectionState.connectionState ==
             DeviceConnectionState.connected) {
           setState(() {
+            // Discover services and characteristics
+            _Characteristic = QualifiedCharacteristic(
+              serviceId: Uuid.parse(serviceUuid),
+              characteristicId: Uuid.parse(txUuid),
+              deviceId: device.id,
+            );
+
             _connectedDevice = device;
             _isConnected = true;
             toastFun('Connected to ${device.name}');
@@ -162,18 +167,12 @@ class _ble_ui_screenState extends State<ble_ui_screen>
               MaterialPageRoute(
                 builder: (context) => home_screen(
                   connectionNUM: _connection,
-                  connectedDevice: device,
+                  connectedDevice: _connectedDevice,
+                  characteristic: _Characteristic,
                 ),
               ),
             );
           });
-
-          // Discover services and characteristics
-          _txCharacteristic = QualifiedCharacteristic(
-            serviceId: Uuid.parse(_serviceUuid),
-            characteristicId: Uuid.parse(_txUuid),
-            deviceId: device.id,
-          );
         } else if (connectionState.connectionState ==
             DeviceConnectionState.disconnected) {
           setState(() {
@@ -186,6 +185,11 @@ class _ble_ui_screenState extends State<ble_ui_screen>
       });
     } catch (e) {
       print("Error while connecting: $e");
+      setState(() {
+        isLoadingMap[device.id] = false;
+        isPairedMap[device.id] = false;
+        _isConnected = false;
+      });
       toastFun('Error while Connecting');
     }
   }
@@ -209,10 +213,20 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   IconData getServiceIcon(String DeviceName) {
     if (RegExp(r"^SmartHUB\b").hasMatch(DeviceName)) {
       return Icons.battery_charging_full;
-    } else if (RegExp(r"^[TV]\b").hasMatch(DeviceName)) {
+    } else if (RegExp(r"[TV]").hasMatch(DeviceName)) {
       return Icons.connected_tv_rounded;
-    } else if (RegExp(r"^TV\b").hasMatch(DeviceName)) {
+    } else if (RegExp(r"TV").hasMatch(DeviceName)) {
       return Icons.connected_tv_rounded;
+    } else if (RegExp(r"Band").hasMatch(DeviceName)) {
+      return Icons.watch;
+    } else if (RegExp(r"keyboard").hasMatch(DeviceName)) {
+      return Icons.keyboard_alt_outlined;
+    } else if (RegExp(r"mouse").hasMatch(DeviceName)) {
+      return Icons.mouse;
+    } else if (RegExp(r"speaker").hasMatch(DeviceName)) {
+      return Icons.speaker;
+    } else if (RegExp(r"printer").hasMatch(DeviceName)) {
+      return Icons.print;
     } else {
       return Icons.bluetooth;
     }

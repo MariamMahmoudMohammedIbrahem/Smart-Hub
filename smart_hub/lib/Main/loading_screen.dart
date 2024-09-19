@@ -10,6 +10,7 @@ import '../Components/alerts.dart';
 import '../Components/ble_alerts.dart';
 import '../Constants/AnimatedColors.dart';
 
+import '../Constants/ble_constants.dart';
 import 'home/home_screen.dart';
 
 class welcome_loading_screen extends StatefulWidget {
@@ -33,6 +34,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
   List<DiscoveredDevice> _foundDevices = [];
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
+  late QualifiedCharacteristic _Characteristic;
 
   bool _isConnected = false;
   late String SavedDeviceID;
@@ -53,7 +55,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     await getFromLocalStorage();
   }
 
-/**-------------------------------------------------------------------**/
+  /**-------------------------------------------------------------------**/
   /*
   Title: Permission checker
   Description: checks if the required permission are given
@@ -97,7 +99,11 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
         setState(() {
           batteryLevel =
               _animation.value; // Update batteryLevel as animation progresses
-
+          _Characteristic = QualifiedCharacteristic(
+            serviceId: Uuid.parse(serviceUuid),
+            characteristicId: Uuid.parse(txUuid),
+            deviceId: _connectedDevice.id,
+          );
           // Once the battery level reaches 100%, navigate to the Bluetooth screen
           if (batteryLevel == 1 &&
               blePermissionGranted == true &&
@@ -113,6 +119,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
                 builder: (context) => home_screen(
                   connectionNUM: _connection,
                   connectedDevice: _connectedDevice,
+                  characteristic: _Characteristic,
                 ),
               ),
             );
@@ -166,6 +173,11 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
           setState(() {
             _connectedDevice = device;
             _isConnected = true;
+            QualifiedCharacteristic txCharacteristic = QualifiedCharacteristic(
+              deviceId: device.id,
+              serviceId: Uuid.parse(serviceUuid),
+              characteristicId: Uuid.parse(txUuid),
+            );
             toastFun('Connected to ${device.name}');
           });
         } else if (connectionState.connectionState ==

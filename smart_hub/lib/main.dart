@@ -8,6 +8,7 @@ import 'package:smart_hub/Main/loading_screen.dart';
 
 late final StreamSubscription<ConnectionStateUpdate> connectionNUM;
 late final DiscoveredDevice connectedDevice;
+late final QualifiedCharacteristic characteristic;
 
 void main() {
   runApp(SmartHUB());
@@ -29,7 +30,10 @@ class SmartHUB extends StatelessWidget {
               const welcome_loading_screen(),
           ble_ui_screen.id: (context) => const ble_ui_screen(),
           home_screen.id: (context) => home_screen(
-              connectionNUM: connectionNUM, connectedDevice: connectedDevice),
+                connectionNUM: connectionNUM,
+                connectedDevice: connectedDevice,
+                characteristic: characteristic,
+              ),
         });
   }
 }
