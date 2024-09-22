@@ -1,0 +1,28 @@
+import 'package:flutter/material.dart';
+
+class support_screen extends StatelessWidget {
+  static String id = 'Support_Screen';
+  const support_screen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Support'),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                'Support Screen',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

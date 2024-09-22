@@ -6,6 +6,8 @@ import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import 'package:smart_hub/Main/home/home_screen.dart';
 import 'package:smart_hub/Main/loading_screen.dart';
 
+import 'Main/Support/support.dart';
+
 late final StreamSubscription<ConnectionStateUpdate> connectionNUM;
 late final DiscoveredDevice connectedDevice;
 late final QualifiedCharacteristic characteristic;
@@ -34,6 +36,7 @@ class SmartHUB extends StatelessWidget {
                 connectedDevice: connectedDevice,
                 characteristic: characteristic,
               ),
+          support_screen.id: (context) => const support_screen(),
         });
   }
 }

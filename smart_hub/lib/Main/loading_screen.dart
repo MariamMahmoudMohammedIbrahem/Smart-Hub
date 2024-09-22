@@ -7,10 +7,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import '../Components/alerts.dart';
-import '../Components/ble_alerts.dart';
 import '../Constants/AnimatedColors.dart';
 
 import '../Constants/ble_constants.dart';
+import '../Constants/version.dart';
 import 'home/home_screen.dart';
 
 class welcome_loading_screen extends StatefulWidget {
@@ -99,11 +99,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
         setState(() {
           batteryLevel =
               _animation.value; // Update batteryLevel as animation progresses
-          _Characteristic = QualifiedCharacteristic(
-            serviceId: Uuid.parse(serviceUuid),
-            characteristicId: Uuid.parse(txUuid),
-            deviceId: _connectedDevice.id,
-          );
+
           // Once the battery level reaches 100%, navigate to the Bluetooth screen
           if (batteryLevel == 1 &&
               blePermissionGranted == true &&
@@ -146,16 +142,23 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     }
   }
 
+  /*
+  Title: Local Storage
+  Description: This function uses shared preference package to get some information
+               about the last connected device
+ */
   Future<void> getFromLocalStorage() async {
     SavedDeviceID =
         prefs.getString('ConnectedDevice') ?? 'null'; // save the device id
-    print(' SavedDeviceid =  $SavedDeviceID');
-
     if (SavedDeviceID != 'null') {
       startScan();
     }
   }
 
+  /*
+  Title: Local Storage
+  Description: This function Connects to the given device in case it was found
+ */
   Future<void> _connectToDevice(DiscoveredDevice device) async {
     setState(() {
       _isConnected = false;
@@ -173,10 +176,10 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
           setState(() {
             _connectedDevice = device;
             _isConnected = true;
-            QualifiedCharacteristic txCharacteristic = QualifiedCharacteristic(
-              deviceId: device.id,
+            _Characteristic = QualifiedCharacteristic(
               serviceId: Uuid.parse(serviceUuid),
               characteristicId: Uuid.parse(txUuid),
+              deviceId: _connectedDevice.id,
             );
             toastFun('Connected to ${device.name}');
           });
@@ -188,6 +191,10 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     }
   }
 
+  /*
+  Title: BLE Scan
+  Description: This function scans the surrounding BLE devices
+ */
   void startScan() {
     setState(() {
       isScanning = true;
@@ -233,153 +240,169 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
       child: Scaffold(
         backgroundColor: Colors.grey[900], // Background color
         body: Center(
-          child: Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                !isGlobalVariableTrue
-                    ? Column(
-                        children: [
-                          const Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'Always Be',
-                                  style: TextStyle(
-                                      fontSize: 40.0,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                DefaultTextStyle(
-                                  style: const TextStyle(
-                                    fontSize: 25.0,
-                                    fontFamily: 'Horizon',
-                                  ),
-                                  child: AnimatedTextKit(
-                                    /* Don't repeat the animation */
-                                    repeatForever: false,
-                                    totalRepeatCount: 1,
-                                    isRepeatingAnimation: false,
-                                    animatedTexts: [
-                                      RotateAnimatedText(
-                                        'CHARGED',
-                                        duration: const Duration(
-                                            milliseconds:
-                                                800), // Duration per word
-                                      ),
-                                      RotateAnimatedText(
-                                        'POWERED',
-                                        duration: const Duration(
-                                            milliseconds:
-                                                800), // Duration per word
-                                      ),
-                                      RotateAnimatedText(
-                                        'READY',
-                                        duration: const Duration(
-                                            milliseconds:
-                                                800), // Duration per word
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: AnimatedTextKit(
-                              animatedTexts: [
-                                ColorizeAnimatedText(
-                                  'SMART HUB',
-                                  textStyle: colorizeTextStyle,
-                                  speed: const Duration(milliseconds: 1000),
-                                  colors: colorizeColors,
-                                ),
-                              ],
-                              isRepeatingAnimation: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                const SizedBox(width: 20),
-                Container(
-                  width: 3,
-                  height: 200,
-                  color: Colors.white,
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Column(
+          child: Column(
+            children: [
+              Expanded(
+                flex: 10,
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 60,
-                      height: 120, // Increase height for a vertical battery
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white, width: 3),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Empty battery background
-                          Positioned.fill(
-                            child: Container(
-                              color: Colors.transparent,
-                            ),
+                    !isGlobalVariableTrue
+                        ? Column(
+                            children: [
+                              const Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Always Be',
+                                      style: TextStyle(
+                                          fontSize: 40.0,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    DefaultTextStyle(
+                                      style: const TextStyle(
+                                        fontSize: 25.0,
+                                        fontFamily: 'Horizon',
+                                      ),
+                                      child: AnimatedTextKit(
+                                        /* Don't repeat the animation */
+                                        repeatForever: false,
+                                        totalRepeatCount: 1,
+                                        isRepeatingAnimation: false,
+                                        animatedTexts: [
+                                          RotateAnimatedText(
+                                            'CHARGED',
+                                            duration: const Duration(
+                                                milliseconds:
+                                                    800), // Duration per word
+                                          ),
+                                          RotateAnimatedText(
+                                            'POWERED',
+                                            duration: const Duration(
+                                                milliseconds:
+                                                    800), // Duration per word
+                                          ),
+                                          RotateAnimatedText(
+                                            'READY',
+                                            duration: const Duration(
+                                                milliseconds:
+                                                    800), // Duration per word
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: AnimatedTextKit(
+                                  animatedTexts: [
+                                    ColorizeAnimatedText(
+                                      'SMART HUB',
+                                      textStyle: colorizeTextStyle,
+                                      speed: const Duration(milliseconds: 1000),
+                                      colors: colorizeColors,
+                                    ),
+                                  ],
+                                  isRepeatingAnimation: true,
+                                ),
+                              ),
+                            ],
                           ),
+                    const SizedBox(width: 20),
+                    Container(
+                      width: 3,
+                      height: 200,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 120, // Increase height for a vertical battery
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white, width: 3),
+                          ),
+                          child: Stack(
+                            children: [
+                              // Empty battery background
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.transparent,
+                                ),
+                              ),
 
-                          // Filling part (battery charging) - Now Vertical
-                          Positioned.fill(
-                            child: FractionallySizedBox(
-                              heightFactor:
-                                  batteryLevel, // Change to heightFactor for vertical filling
-                              alignment: Alignment
-                                  .bottomCenter, // Fill from bottom to top
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: getBatteryColor(
-                                      batteryLevel), // Dynamic color based on battery level
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(8),
-                                    bottomRight: Radius.circular(8),
+                              // Filling part (battery charging) - Now Vertical
+                              Positioned.fill(
+                                child: FractionallySizedBox(
+                                  heightFactor:
+                                      batteryLevel, // Change to heightFactor for vertical filling
+                                  alignment: Alignment
+                                      .bottomCenter, // Fill from bottom to top
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: getBatteryColor(
+                                          batteryLevel), // Dynamic color based on battery level
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(8),
+                                        bottomRight: Radius.circular(8),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                    // Battery percentage display
-                    Text(
-                      '${(batteryLevel * 100).toInt()}%',
-                      style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500),
+                        // Battery percentage display
+                        Text(
+                          '${(batteryLevel * 100).toInt()}%',
+                          style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Expanded(
+                  child: Column(
+                children: [
+                  Text(
+                    'SmartHUB App powered by EOIP\n $version',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white60, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ))
+            ],
           ),
         ),
       ),

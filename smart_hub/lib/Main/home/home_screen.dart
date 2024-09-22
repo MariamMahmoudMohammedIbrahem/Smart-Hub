@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
-import '../../Constants/ble_constants.dart';
+import '../../Components/alerts.dart';
+import '../../Components/drawer_list.dart';
 import '../BLE/ble_ui.dart';
 
 class home_screen extends StatefulWidget {
@@ -22,6 +23,35 @@ class home_screen extends StatefulWidget {
 }
 
 class _home_screenState extends State<home_screen> {
+  /**---------------------Local Variables Section----------------------**/
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool isConnected = true;
+  final flutterReactiveBle = FlutterReactiveBle();
+  /**------------------------------------------------------------------**/
+
+  void connectionChecker() {
+    // Assuming you have access to the StreamSubscription<ConnectionStateUpdate> variable for this device
+
+    flutterReactiveBle.connectToDevice(id: widget.connectedDevice.id).listen(
+        (connectionState) {
+      if (connectionState.connectionState == DeviceConnectionState.connected) {
+        // Device is connected
+        toastFun('Connected');
+        print('Device ${widget.connectedDevice.name} is still connected.');
+      } else if (connectionState.connectionState ==
+          DeviceConnectionState.disconnected) {
+        // Device is disconnected
+        toastFun('disConnected');
+        print('Device ${widget.connectedDevice.name} is disconnected.');
+      } else {
+        toastFun('Already connected');
+      }
+    }, onError: (error) {
+      print('Error connecting to device: $error');
+      toastFun('error');
+    });
+  }
+
   // Function to send data to the connected device
   Future<void> sendData(String data) async {
     await FlutterReactiveBle().writeCharacteristicWithResponse(
@@ -51,41 +81,51 @@ class _home_screenState extends State<home_screen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Screen'),
+      key: _scaffoldKey,
+      drawer: drawerList(
+        isConnected: isConnected,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Connected to: ${widget.connectedDevice.name}'),
-            ElevatedButton(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: double.infinity,
+            child: IconButton(
               onPressed: () {
-                // Example usage: Send "Hello" to the connected device
+                _scaffoldKey.currentState!.openDrawer();
+              },
+              icon: const Icon(
+                Icons.menu,
+                size: 30,
+              ),
+            ),
+          ),
+          Text('Connected to: ${widget.connectedDevice.name}'),
+          ElevatedButton(
+            onPressed: () {
+              // Example usage: Send "Hello" to the connected device
 
-                sendData('Hello\n');
-              },
-              child: Text('Send Data'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Example: Listening to data from the connected device
+              sendData('Hello\n');
+            },
+            child: Text('Send Data'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Example: Listening to data from the connected device
 
-                receiveData().listen((data) {
-                  print('Received data: ${String.fromCharCodes(data)}');
-                });
-              },
-              child: Text('Receive Data'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                widget.connectionNUM.cancel();
-                Navigator.pushReplacementNamed(context, ble_ui_screen.id);
-              },
-              child: Text('unpair'),
-            ),
-          ],
-        ),
+              receiveData().listen((data) {
+                print('Received data: ${String.fromCharCodes(data)}');
+              });
+            },
+            child: Text('Receive Data'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              connectionChecker();
+            },
+            child: Text('unpair'),
+          ),
+        ],
       ),
     );
   }

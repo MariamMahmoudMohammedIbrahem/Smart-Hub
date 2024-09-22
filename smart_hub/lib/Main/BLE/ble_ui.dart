@@ -3,6 +3,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Components/alerts.dart';
+import 'package:smart_hub/Main/Support/support.dart';
 import 'package:smart_hub/Main/home/home_screen.dart';
 import 'dart:async';
 import '../../Components/ble_alerts.dart';
@@ -29,8 +30,8 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   late QualifiedCharacteristic _Characteristic;
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
-  bool _isConnected = false;
   bool isScanning = false;
+  bool isPairing = false;
   Timer? _scanTimer;
   Map<String, bool> isLoadingMap = {};
   Map<String, bool> isPairedMap = {};
@@ -38,6 +39,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   bool devicePaired = false;
   String? pairedDeviceName;
   String? pairedDeviceId;
+  late String SavedDeviceID;
 
   /* Local storage  */
   late final SharedPreferences prefs;
@@ -127,6 +129,16 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     });
   }
 
+/*
+  Title: Local Storage
+  Description: This function uses shared preference package to get some information
+  about the last connected device
+  */
+  Future<void> getFromLocalStorage() async {
+    SavedDeviceID =
+        prefs.getString('ConnectedDevice') ?? 'null'; // save the device id
+  }
+
   Future<void> saveToLocalStorage(DiscoveredDevice device) async {
     await prefs.setString('ConnectedDevice', device.id); // save the device id
   }
@@ -134,7 +146,6 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   // Connect to a device
   Future<void> _connectToDevice(DiscoveredDevice device) async {
     setState(() {
-      _isConnected = false;
       isLoadingMap[device.id] = true;
       isPairedMap[device.id] = false;
     });
@@ -149,6 +160,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         if (connectionState.connectionState ==
             DeviceConnectionState.connected) {
           setState(() {
+            isPairing = false;
             // Discover services and characteristics
             _Characteristic = QualifiedCharacteristic(
               serviceId: Uuid.parse(serviceUuid),
@@ -157,7 +169,6 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             );
 
             _connectedDevice = device;
-            _isConnected = true;
             toastFun('Connected to ${device.name}');
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = true;
@@ -176,9 +187,9 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         } else if (connectionState.connectionState ==
             DeviceConnectionState.disconnected) {
           setState(() {
+            isPairing = false;
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = false;
-            _isConnected = false;
             toastFun('Not Connected');
           });
         }
@@ -186,9 +197,9 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     } catch (e) {
       print("Error while connecting: $e");
       setState(() {
+        isPairing = false;
         isLoadingMap[device.id] = false;
         isPairedMap[device.id] = false;
-        _isConnected = false;
       });
       toastFun('Error while Connecting');
     }
@@ -211,13 +222,15 @@ class _ble_ui_screenState extends State<ble_ui_screen>
 
   // Function to map Device name to an icon
   IconData getServiceIcon(String DeviceName) {
-    if (RegExp(r"^SmartHUB\b").hasMatch(DeviceName)) {
+    if (RegExp(r"SmartHUB").hasMatch(DeviceName)) {
       return Icons.battery_charging_full;
     } else if (RegExp(r"[TV]").hasMatch(DeviceName)) {
       return Icons.connected_tv_rounded;
     } else if (RegExp(r"TV").hasMatch(DeviceName)) {
       return Icons.connected_tv_rounded;
     } else if (RegExp(r"Band").hasMatch(DeviceName)) {
+      return Icons.watch;
+    } else if (RegExp(r"Watch").hasMatch(DeviceName)) {
       return Icons.watch;
     } else if (RegExp(r"keyboard").hasMatch(DeviceName)) {
       return Icons.keyboard_alt_outlined;
@@ -279,15 +292,15 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey[900], // Background color
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
             // Header
             const Text(
-              'Connection Setup',
+              'Identifying Charger',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 30,
@@ -295,13 +308,19 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                 letterSpacing: 1.2,
               ),
             ),
-            Text(
-              isScanning ? 'Scanning for devices...' : 'Scan Stopped',
+            SizedBox(
+              height: 10,
+            ),
+            const Text(
+              'Find the closest SmartHUB charger \nvia bluetooth',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white70,
-                fontSize: 18,
+                color: Colors.white60,
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
               ),
             ),
+
             SizedBox(height: 40),
             // Bluetooth Button with Heartbeat Animation
             GestureDetector(
@@ -384,7 +403,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                     child: Container(
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.black87,
+                        color: Colors.black38,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white54, width: 1),
                         boxShadow: [
@@ -425,7 +444,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                                     ),
                                   ),
                                   Text(
-                                    ("ID: ${device.id}\nRSSI: ${device.rssi}"),
+                                    ("ID: ${device.id}\nRSSI: ${device.rssi} dBm"),
                                     style: TextStyle(
                                       color: Colors.white54,
                                       fontSize: 14,
@@ -476,7 +495,12 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                                       onPressed: () {
                                         // Pairing logic here
                                         if (!isScanning) {
-                                          _connectToDevice(device);
+                                          if (isPairing == false) {
+                                            setState(() {
+                                              isPairing = true;
+                                            });
+                                            _connectToDevice(device);
+                                          }
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
@@ -500,6 +524,49 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                     ),
                   );
                 },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: 10,
+                right: 40,
+                left: 40,
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    color: Colors.white30,
+                    child: Text(''),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Need help ?',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 1,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, support_screen.id);
+                        },
+                        child: Text(
+                          'Support',
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
