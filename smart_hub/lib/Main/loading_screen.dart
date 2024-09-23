@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import '../Components/alerts.dart';
+import '../Components/ble_alerts.dart';
 import '../Constants/AnimatedColors.dart';
 
 import '../Constants/ble_constants.dart';
@@ -77,6 +78,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     } else {
       print('Bluetooth and/or location permission denied.');
       errorCheck(context, 'BLE'); // Handle the case where permission is denied
+      blePermissionGranted = false;
     }
   }
 
@@ -119,6 +121,9 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
                 ),
               ),
             );
+          }
+          else if(batteryLevel == 1 && blePermissionGranted == false){
+            permissionsError(context,'BLE_PERM');
           }
           /* If the battery level exceeds a certain level then display something else */
           if (batteryLevel >= 0.75) {

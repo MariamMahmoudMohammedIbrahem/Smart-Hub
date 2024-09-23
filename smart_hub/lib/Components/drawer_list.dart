@@ -2,13 +2,14 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import '../Constants/AnimatedColors.dart';
 import '../Constants/version.dart';
-import 'alerts.dart';
 
 class drawerList extends StatefulWidget {
   final bool isConnected;
+  final bool screenTheme;
   const drawerList({
     super.key,
     required this.isConnected,
+    required this.screenTheme,
   });
 
   @override
@@ -114,6 +115,32 @@ class _drawerListState extends State<drawerList> {
                       ],
                     )
                   : Container(),
+            ),
+            ListTile(
+              title: Text(
+                widget.isConnected ? 'Connected' : 'Not Connected',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              onTap: () {
+                setState(() {});
+              },
+              trailing: Icon(Icons.keyboard_arrow_up),
+            ),
+            ListTile(
+              title: Text(
+                widget.screenTheme ? 'Dark' : 'Light',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+              onTap: () {
+                setState(() {});
+              },
+              trailing: Icon(
+                widget.screenTheme ? Icons.light_mode : Icons.dark_mode,
+              ),
             ),
           ],
         ),

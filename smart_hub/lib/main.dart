@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import 'package:smart_hub/Main/home/home_screen.dart';
@@ -13,7 +14,7 @@ late final DiscoveredDevice connectedDevice;
 late final QualifiedCharacteristic characteristic;
 
 void main() {
-  runApp(SmartHUB());
+  runApp(Phoenix(child: SmartHUB()));
 }
 
 class SmartHUB extends StatelessWidget {

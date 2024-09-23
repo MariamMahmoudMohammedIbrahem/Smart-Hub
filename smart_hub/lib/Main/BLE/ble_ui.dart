@@ -129,16 +129,6 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     });
   }
 
-/*
-  Title: Local Storage
-  Description: This function uses shared preference package to get some information
-  about the last connected device
-  */
-  Future<void> getFromLocalStorage() async {
-    SavedDeviceID =
-        prefs.getString('ConnectedDevice') ?? 'null'; // save the device id
-  }
-
   Future<void> saveToLocalStorage(DiscoveredDevice device) async {
     await prefs.setString('ConnectedDevice', device.id); // save the device id
   }
