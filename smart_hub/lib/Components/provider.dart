@@ -7,13 +7,13 @@ class ScreenDataProvider extends ChangeNotifier {
   bool get isDeviceConnected => _isDeviceConnected;
   bool get isThemeDark => _isThemeDark;
 
-  void updateConnection() {
-    _isDeviceConnected = !_isDeviceConnected;
+  void updateConnection(bool isConnected) {
+    _isDeviceConnected = isConnected;
     notifyListeners(); // Notify listeners to rebuild widgets that depend on this data
   }
 
-  void updateTheme() {
-    _isThemeDark = !_isThemeDark;
+  void updateTheme(bool isDark) {
+    _isThemeDark = isDark;
     notifyListeners(); // Notify listeners to rebuild widgets that depend on this data
   }
 }

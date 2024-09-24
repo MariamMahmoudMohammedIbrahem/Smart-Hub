@@ -121,9 +121,8 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
                 ),
               ),
             );
-          }
-          else if(batteryLevel == 1 && blePermissionGranted == false){
-            permissionsError(context,'BLE_PERM');
+          } else if (batteryLevel == 1 && blePermissionGranted == false) {
+            permissionsError(context, 'BLE_PERM');
           }
           /* If the battery level exceeds a certain level then display something else */
           if (batteryLevel >= 0.75) {
@@ -186,7 +185,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
               characteristicId: Uuid.parse(txUuid),
               deviceId: _connectedDevice.id,
             );
-            toastFun('Connected to ${device.name}');
+            toastFun('Connected to ${device.name}', false);
           });
         } else if (connectionState.connectionState ==
             DeviceConnectionState.disconnected) {}

@@ -101,12 +101,12 @@ void errorCheck(BuildContext context, String errorMessage) {
   }
 }
 
-void toastFun(String title) {
+void toastFun(String title, bool isDark) {
   Fluttertoast.cancel();
   Fluttertoast.showToast(
     msg: title,
     gravity: ToastGravity.BOTTOM,
-    backgroundColor: Colors.white24,
+    backgroundColor: isDark ? Colors.white24 : Colors.black45,
     textColor: Colors.white,
     fontSize: 16.0,
   );

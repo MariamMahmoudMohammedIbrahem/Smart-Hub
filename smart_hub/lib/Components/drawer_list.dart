@@ -1,15 +1,15 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:slider_button/slider_button.dart';
+import 'package:smart_hub/Components/provider.dart';
+
 import '../Constants/AnimatedColors.dart';
 import '../Constants/version.dart';
 
 class drawerList extends StatefulWidget {
-  final bool isConnected;
-  final bool screenTheme;
   const drawerList({
     super.key,
-    required this.isConnected,
-    required this.screenTheme,
   });
 
   @override
@@ -21,13 +21,16 @@ class _drawerListState extends State<drawerList> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-            topRight: Radius.circular(150), bottomRight: Radius.circular(30)),
-      ),
-      backgroundColor: Colors.black87,
-      child: SafeArea(
+    final screenDataProvider = Provider.of<ScreenDataProvider>(context);
+
+    return SafeArea(
+      child: Drawer(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(150),
+          ),
+        ),
+        backgroundColor: Colors.black87,
         child: ListView(
           padding: const EdgeInsets.all(0),
           children: <Widget>[
@@ -55,27 +58,47 @@ class _drawerListState extends State<drawerList> {
                     ),
                   ),
                   Expanded(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'SmartHUB $version',
-                        style: TextStyle(
-                          color: Colors.white54,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'SmartHUB $version',
+                          style: TextStyle(
+                            color: Colors.white54,
+                          ),
                         ),
-                      ),
-                    ],
-                  ))
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            // Collapsible/Expandable Section for Team Info
             ListTile(
-              title: const Text(
-                'Team Info',
+              title: Text(
+                screenDataProvider.isDeviceConnected
+                    ? 'Connected'
+                    : 'Not Connected',
                 style: TextStyle(
                   fontSize: 20,
                 ),
+              ),
+              trailing: Icon(Icons.keyboard_arrow_up),
+            ),
+            // Collapsible/Expandable Section for Team Info
+            ListTile(
+              title: Row(
+                children: [
+                  const Text(
+                    'Theme Settings',
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Icon(Icons.color_lens_outlined)
+                ],
               ),
               onTap: () {
                 setState(() {
@@ -92,55 +115,46 @@ class _drawerListState extends State<drawerList> {
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
-              height: isExpanded ? 120 : 0, // Adjust height based on state
+              height: isExpanded ? 60 : 0, // Adjust height based on state
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: isExpanded
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          '• Team Member 1: Developer',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                  ? Container(
+                      height: 60,
+                      child: SliderButton(
+                        action: () async {
+                          Navigator.pop(context);
+                          // Call updateTheme when slider button is slid
+                          if (screenDataProvider.isThemeDark)
+                            screenDataProvider.updateTheme(false);
+                          else
+                            screenDataProvider.updateTheme(true);
+                          // Return true after completing the action
+                          return Future.value(true);
+                        },
+                        label: Text(
+                          screenDataProvider.isThemeDark
+                              ? 'Slide to switch\nto Light Theme'
+                              : 'Slide to switch\nto Dark Theme',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          '• Team Member 2: Designer',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        icon: Icon(
+                          screenDataProvider.isThemeDark
+                              ? Icons.light_mode
+                              : Icons.dark_mode,
+                          color: screenDataProvider.isThemeDark
+                              ? Colors.orange
+                              : Colors.black,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          '• Team Member 3: Product Manager',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ],
+                        vibrationFlag: true,
+                        backgroundColor: Colors.white24,
+                        highlightedColor: Colors.indigo,
+                      ),
                     )
                   : Container(),
-            ),
-            ListTile(
-              title: Text(
-                widget.isConnected ? 'Connected' : 'Not Connected',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-              onTap: () {
-                setState(() {});
-              },
-              trailing: Icon(Icons.keyboard_arrow_up),
-            ),
-            ListTile(
-              title: Text(
-                widget.screenTheme ? 'Dark' : 'Light',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
-              ),
-              onTap: () {
-                setState(() {});
-              },
-              trailing: Icon(
-                widget.screenTheme ? Icons.light_mode : Icons.dark_mode,
-              ),
             ),
           ],
         ),

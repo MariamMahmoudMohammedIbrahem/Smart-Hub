@@ -35,6 +35,7 @@ class _home_screenState extends State<home_screen> {
   late String SavedDeviceID;
   bool testVar = false;
   bool screenTheme = false;
+
   /**------------------------------------------------------------------**/
   Future<void> initPackages() async {
     _connecetion = widget.connectionNUM;
@@ -80,6 +81,9 @@ class _home_screenState extends State<home_screen> {
  */
 
   void connectionChecker() {
+    final screenDataProvider =
+        Provider.of<ScreenDataProvider>(context, listen: false);
+
     // Assuming you have access to the StreamSubscription<ConnectionStateUpdate> variable for this device
     _connecetion = flutterReactiveBle
         .connectToDevice(
@@ -89,7 +93,7 @@ class _home_screenState extends State<home_screen> {
         .listen((connectionState) {
       if (connectionState.connectionState == DeviceConnectionState.connected) {
         // Device is connected
-        toastFun('Connection Restored');
+        toastFun('Connection Restored', false);
         setState(() {
           isConnected = true;
         });
@@ -99,10 +103,10 @@ class _home_screenState extends State<home_screen> {
           isConnected = false;
         });
         // Device is disconnected
-        toastFun('Connection Lost');
+        toastFun('Connection Lost', false);
       }
     }, onError: (error) {
-      toastFun('Connection Error');
+      toastFun('Connection Error', false);
       setState(() {
         isConnected = false;
       });
@@ -137,119 +141,113 @@ class _home_screenState extends State<home_screen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ScreenDataProvider(), // Provide your data provider
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: drawerList(
-          isConnected: isConnected,
-          screenTheme: screenTheme,
-        ),
-        backgroundColor: screenTheme ? Colors.black : Colors.white,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Consumer<ScreenDataProvider>(
-              builder: (context, provider, child) {
-                return provider.isDeviceConnected
-                    ? Container(
-                        width: 200,
-                        height: 200,
-                        color: Colors.blue,
-                        child: Center(child: Text("First Container")),
-                      )
-                    : Container(
-                        width: 200,
-                        height: 200,
-                        color: Colors.green,
-                        child: Center(child: Text("Second Container")),
-                      );
-              },
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 10, top: 20),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black87,
-              ),
-              child: IconButton(
-                onPressed: () {
-                  _scaffoldKey.currentState!.openDrawer();
-                },
-                icon: const Icon(
-                  Icons.menu,
-                  size: 30,
+    final screenDataProvider = Provider.of<ScreenDataProvider>(context);
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: drawerList(),
+      backgroundColor:
+          screenDataProvider.isThemeDark ? Colors.grey[900] : Colors.white,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          screenDataProvider.isDeviceConnected
+              ? Container(
+                  width: 200,
+                  height: 200,
+                  color: Colors.blue,
+                  child: Center(child: Text("First Container")),
+                )
+              : Container(
+                  width: 200,
+                  height: 200,
+                  color: Colors.green,
+                  child: Center(child: Text("Second Container")),
                 ),
+          Container(
+            margin: const EdgeInsets.only(left: 10, top: 20),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black87,
+            ),
+            child: IconButton(
+              onPressed: () {
+                _scaffoldKey.currentState!.openDrawer();
+              },
+              icon: const Icon(
+                Icons.menu,
+                size: 30,
               ),
             ),
-            testVar
-                ? Container(
-                    width: 200.0, // Width of the circle
-                    height: 200.0, // Height of the circle
-                    decoration: BoxDecoration(
-                      color: Colors.white12, // Background color of the circle
-                      shape: BoxShape.circle, // Making the container circular
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Circle",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  )
-                : CardLoading(
-                    height: 200,
-                    width: 200,
-                    borderRadius: BorderRadius.all(Radius.circular(10000)),
-                    margin: EdgeInsets.only(bottom: 10),
-                    cardLoadingTheme: CardLoadingTheme(
-                        colorOne: Colors.white12, colorTwo: Colors.black12),
+          ),
+          testVar
+              ? Container(
+                  width: 200.0, // Width of the circle
+                  height: 200.0, // Height of the circle
+                  decoration: BoxDecoration(
+                    color: Colors.white12, // Background color of the circle
+                    shape: BoxShape.circle, // Making the container circular
                   ),
-            Text('Connected to: ${widget.connectedDevice.name}'),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  setState(() {
-                    Provider.of<ScreenDataProvider>(context, listen: false)
-                        .updateTheme();
-                  });
-                });
+                  child: Center(
+                    child: Text(
+                      "Circle",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                )
+              : CardLoading(
+                  height: 200,
+                  width: 200,
+                  borderRadius: BorderRadius.all(Radius.circular(10000)),
+                  margin: EdgeInsets.only(bottom: 10),
+                  cardLoadingTheme: CardLoadingTheme(
+                      colorOne: Colors.white12, colorTwo: Colors.black12),
+                ),
+          Text('Connected to: ${widget.connectedDevice.name}'),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                if (screenDataProvider.isThemeDark)
+                  screenDataProvider.updateTheme(false);
+                else
+                  screenDataProvider.updateTheme(true);
+              });
 
-                sendData('Hello\n');
-              },
-              child: Text('Send Data'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Example: Listening to data from the connected device
-                setState(() {
-                  Provider.of<ScreenDataProvider>(context, listen: false)
-                      .updateConnection();
-                });
+              sendData('Hello\n');
+            },
+            child: Text('Send Data'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Example: Listening to data from the connected device
+              setState(() {
+                if (screenDataProvider.isDeviceConnected)
+                  screenDataProvider.updateConnection(false);
+                else
+                  screenDataProvider.updateConnection(true);
+              });
 
-                receiveData().listen((data) {
-                  print('Received data: ${String.fromCharCodes(data)}');
-                });
-              },
-              child: Text('Receive Data'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _connecetion.cancel();
-                setState(() {
-                  isConnected = false;
-                });
-              },
-              child: Text('unpair'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                connectionChecker();
-              },
-              child: Text('Reconnect'),
-            ),
-          ],
-        ),
+              receiveData().listen((data) {
+                print('Received data: ${String.fromCharCodes(data)}');
+              });
+            },
+            child: Text('Receive Data'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _connecetion.cancel();
+              setState(() {
+                isConnected = false;
+              });
+            },
+            child: Text('unpair'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              connectionChecker();
+            },
+            child: Text('Reconnect'),
+          ),
+        ],
       ),
     );
   }

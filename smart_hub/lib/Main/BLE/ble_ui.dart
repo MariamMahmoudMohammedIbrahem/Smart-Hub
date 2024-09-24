@@ -123,7 +123,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
 
   Future<void> disconnectDevice(String deviceId) async {
     await _connection.cancel();
-    toastFun('Unpaired');
+    toastFun('Unpaired', false);
     setState(() {
       isPairedMap[deviceId] = false;
     });
@@ -159,7 +159,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             );
 
             _connectedDevice = device;
-            toastFun('Connected to ${device.name}');
+            toastFun('Connected to ${device.name}', false);
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = true;
             saveToLocalStorage(device);
@@ -180,7 +180,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             isPairing = false;
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = false;
-            toastFun('Not Connected');
+            toastFun('Not Connected', false);
           });
         }
       });
@@ -191,7 +191,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         isLoadingMap[device.id] = false;
         isPairedMap[device.id] = false;
       });
-      toastFun('Error while Connecting');
+      toastFun('Error while Connecting', false);
     }
   }
 
