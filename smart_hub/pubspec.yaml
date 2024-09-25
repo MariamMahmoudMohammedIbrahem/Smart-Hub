@@ -52,3 +52,12 @@ flutter:
 
   assets:
     - images/
+
+  fonts:
+    - family: GoogleFontOne
+      fonts:
+        - asset: fonts/PlaywriteHU-VariableFont_wght.ttf
+
+    - family: GoogleFontTwo
+      fonts:
+        - asset: fonts/EduQLDBeginner-VariableFont_wght.ttf

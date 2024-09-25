@@ -106,7 +106,7 @@ void toastFun(String title, bool isDark) {
   Fluttertoast.showToast(
     msg: title,
     gravity: ToastGravity.BOTTOM,
-    backgroundColor: isDark ? Colors.white24 : Colors.black45,
+    backgroundColor: isDark ? Colors.white24 : Colors.black87 ,
     textColor: Colors.white,
     fontSize: 16.0,
   );

@@ -15,7 +15,9 @@ bool g_ScreenReady = false;
 /**-----------------------------------------------------------**/
 class ble_ui_screen extends StatefulWidget {
   static String id = 'BLE_screen';
+
   const ble_ui_screen({super.key});
+
   @override
   State<ble_ui_screen> createState() => _ble_ui_screenState();
 }
@@ -32,6 +34,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   late StreamSubscription<ConnectionStateUpdate> _connection;
   bool isScanning = false;
   bool isPairing = false;
+  bool isNavigated = false;
   Timer? _scanTimer;
   Map<String, bool> isLoadingMap = {};
   Map<String, bool> isPairedMap = {};
@@ -51,6 +54,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   // Animation controller for button feedback
   late AnimationController _controller;
   late Animation<double> _animation;
+
   /**------------------------------------------------------------------**/
 
   /**------------------------Function Section--------------------------**/
@@ -138,10 +142,11 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     setState(() {
       isLoadingMap[device.id] = true;
       isPairedMap[device.id] = false;
+      isNavigated = false;
     });
 
     try {
-      _connection = await flutterReactiveBle
+      _connection = flutterReactiveBle
           .connectToDevice(
         id: device.id,
         connectionTimeout: const Duration(seconds: 10),
@@ -150,6 +155,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         if (connectionState.connectionState ==
             DeviceConnectionState.connected) {
           setState(() {
+            isNavigated = true;
             isPairing = false;
             // Discover services and characteristics
             _Characteristic = QualifiedCharacteristic(
@@ -180,7 +186,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             isPairing = false;
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = false;
-            toastFun('Not Connected', false);
+            if (isNavigated == false) toastFun('Not Connected', false);
           });
         }
       });
