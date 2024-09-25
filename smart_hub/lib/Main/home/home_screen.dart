@@ -8,7 +8,9 @@ import '../../Components/alerts.dart';
 import 'package:card_loading/card_loading.dart';
 import 'package:provider/provider.dart';
 import '../../Components/drawer_list.dart';
+import '../../Components/loadingCards.dart';
 import '../../Components/provider.dart';
+import '../../Constants/home_constants.dart';
 
 class home_screen extends StatefulWidget implements PreferredSizeWidget {
   static String id = 'home_screen';
@@ -46,7 +48,7 @@ class _home_screenState extends State<home_screen> {
   /* Local storage  */
   late final SharedPreferences prefs;
   late String SavedDeviceID;
-  bool testVar = false;
+  bool screenReady = false;
 
   /* Variable to handle the reconnection */
   int reconnectTrial = 0;
@@ -292,7 +294,7 @@ class _home_screenState extends State<home_screen> {
                               child: ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    reconnectTrial >= 2
+                                    reconnectTrial >= 3
                                         ? Color(0xffd91616)
                                         : Color(0xffb0610c),
                                   ),
@@ -318,7 +320,7 @@ class _home_screenState extends State<home_screen> {
                                 },
                                 child: !isPairLoading
                                     ? Text(
-                                        reconnectTrial >= 2
+                                        reconnectTrial >= 3
                                             ? 'Exit'
                                             : 'Reconnect',
                                         style: TextStyle(
@@ -344,86 +346,186 @@ class _home_screenState extends State<home_screen> {
       ),
       backgroundColor:
           screenDataProvider.isThemeDark ? Colors.grey[900] : Colors.white,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          isConnected
-              ? Container(
-                  width: 200,
-                  height: 200,
-                  color: Colors.blue,
-                  child: Center(child: Text("First Container")),
-                )
-              : Container(
-                  width: 200,
-                  height: 200,
-                  color: Colors.green,
-                  child: Center(child: Text("Second Container")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: screenReady
+                      ? Container(
+                          width: double.infinity,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: screenDataProvider.isThemeDark
+                                ? Colors.white12
+                                : Colors.black12,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(containerRadius),
+                            ),
+                          ),
+                        )
+                      : LoadingCards(
+                          cardBoarderRadius: containerRadius,
+                          cardHeight: 300,
+                          cardWidth: double.infinity,
+                        ),
                 ),
-          testVar
-              ? Container(
-                  width: 200.0, // Width of the circle
-                  height: 200.0, // Height of the circle
-                  decoration: BoxDecoration(
-                    color: Colors.white12, // Background color of the circle
-                    shape: BoxShape.circle, // Making the container circular
+                const SizedBox(
+                  width: 20,
+                ),
+                Expanded(
+                  child: screenReady
+                      ? Container(
+                          width: double.infinity,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: screenDataProvider.isThemeDark
+                                ? Colors.white12
+                                : Colors.black12,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(containerRadius),
+                            ),
+                          ),
+                        )
+                      : LoadingCards(
+                          cardBoarderRadius: containerRadius,
+                          cardHeight: 300,
+                          cardWidth: double.infinity,
+                        ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 25,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                right: 50,
+                left: 50,
+              ),
+              child: Container(
+                width: double.infinity,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: screenDataProvider.isThemeDark
+                      ? Colors.white12
+                      : Colors.black12,
+                  borderRadius: BorderRadius.only(
+                    bottomRight: Radius.circular(80),
+                    bottomLeft: Radius.circular(80),
                   ),
-                  child: Center(
-                    child: Text(
-                      "Circle",
-                      style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 25,
+            ),
+            screenReady
+                ? Container(
+                    width: double.infinity, // Width of the circle
+                    height: 120, // Height of the circle
+                    decoration: BoxDecoration(
+                      color: screenDataProvider.isThemeDark
+                          ? Colors.white12
+                          : Colors.black12, // Background color of the circle
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(containerRadius),
+                      ), // Making the container circular
                     ),
+                    child: Center(
+                      child: Text(
+                        "Circle",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  )
+                : LoadingCards(
+                    cardBoarderRadius: containerRadius,
+                    cardHeight: 120,
+                    cardWidth: double.infinity,
                   ),
-                )
-              : CardLoading(
-                  height: 200,
-                  width: 200,
-                  borderRadius: BorderRadius.all(Radius.circular(10000)),
-                  margin: EdgeInsets.only(bottom: 10),
-                  cardLoadingTheme: CardLoadingTheme(
-                      colorOne: Colors.white12, colorTwo: Colors.black12),
+            const SizedBox(
+              height: 10,
+            ),
+            screenReady
+                ? Container(
+                    width: double.infinity, // Width of the circle
+                    height: 120, // Height of the circle
+                    decoration: BoxDecoration(
+                      color: screenDataProvider.isThemeDark
+                          ? Colors.white12
+                          : Colors.black12, // Background color of the circle
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(containerRadius),
+                      ), // Making the container circular
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Circle",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  )
+                : LoadingCards(
+                    cardBoarderRadius: containerRadius,
+                    cardHeight: 120,
+                    cardWidth: double.infinity,
+                  ),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: screenReady
+                      ? Container(
+                          width: double.infinity,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: screenDataProvider.isThemeDark
+                                ? Colors.white12
+                                : Colors.black12,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(containerRadius),
+                            ),
+                          ),
+                        )
+                      : LoadingCards(
+                          cardBoarderRadius: containerRadius,
+                          cardHeight: 120,
+                          cardWidth: double.infinity,
+                        ),
                 ),
-          Text('Connected to: ${widget.connectedDevice.name}'),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (screenDataProvider.isThemeDark)
-                  screenDataProvider.updateTheme(false);
-                else
-                  screenDataProvider.updateTheme(true);
-              });
-
-              sendData('Hello\n');
-            },
-            child: Text('Send Data'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Example: Listening to data from the connected device
-              setState(() {});
-
-              receiveData().listen((data) {
-                print('Received data: ${String.fromCharCodes(data)}');
-              });
-            },
-            child: Text('Receive Data'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _connecetion.cancel();
-              setState(() {
-                isConnected = false;
-              });
-            },
-            child: Text('unpair'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              connectionChecker();
-            },
-            child: Text('Reconnect'),
-          ),
-        ],
+                SizedBox(
+                  width: 15,
+                ),
+                Expanded(
+                  child: screenReady
+                      ? Container(
+                          width: double.infinity,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: screenDataProvider.isThemeDark
+                                ? Colors.white12
+                                : Colors.black12,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(containerRadius),
+                            ),
+                          ),
+                        )
+                      : LoadingCards(
+                          cardBoarderRadius: containerRadius,
+                          cardHeight: 120,
+                          cardWidth: double.infinity,
+                        ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

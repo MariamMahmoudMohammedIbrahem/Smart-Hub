@@ -185,7 +185,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
               characteristicId: Uuid.parse(txUuid),
               deviceId: _connectedDevice.id,
             );
-            toastFun('Connected to ${device.name}', false);
+            toastFun('Connected to ${device.name}', true);
           });
         } else if (connectionState.connectionState ==
             DeviceConnectionState.disconnected) {}

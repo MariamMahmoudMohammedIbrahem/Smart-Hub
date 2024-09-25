@@ -127,7 +127,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
 
   Future<void> disconnectDevice(String deviceId) async {
     await _connection.cancel();
-    toastFun('Unpaired', false);
+    toastFun('Unpaired', true);
     setState(() {
       isPairedMap[deviceId] = false;
     });
@@ -149,7 +149,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
       _connection = flutterReactiveBle
           .connectToDevice(
         id: device.id,
-        connectionTimeout: const Duration(seconds: 10),
+        connectionTimeout: const Duration(seconds: 5),
       )
           .listen((connectionState) {
         if (connectionState.connectionState ==
@@ -165,7 +165,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             );
 
             _connectedDevice = device;
-            toastFun('Connected to ${device.name}', false);
+            toastFun('Connected to ${device.name}', true);
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = true;
             saveToLocalStorage(device);
@@ -186,7 +186,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             isPairing = false;
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = false;
-            if (isNavigated == false) toastFun('Not Connected', false);
+            if (isNavigated == false) toastFun('Not Connected', true);
           });
         }
       });
@@ -197,7 +197,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
         isLoadingMap[device.id] = false;
         isPairedMap[device.id] = false;
       });
-      toastFun('Error while Connecting', false);
+      toastFun('Error while Connecting', true);
     }
   }
 
