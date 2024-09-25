@@ -351,6 +351,277 @@ class _home_screenState extends State<home_screen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                color: screenDataProvider.isThemeDark
+                    ? Colors.white12
+                    : Colors.black12,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(containerRadius),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15),
+                    child: Center(
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.battery_charging_full,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Column(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Device Name:',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                widget.connectedDevice.name != ''
+                                    ? '${widget.connectedDevice.name}'
+                                    : 'Unknown',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MAC Address:',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                '${widget.connectedDevice.id}',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'RSSI:',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                '${widget.connectedDevice.rssi} dBm',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Status:',
+                                style: TextStyle(
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                isConnected ? 'Connected' : 'Disconnected',
+                                style: TextStyle(
+                                  color: isConnected
+                                      ? Colors.green
+                                      : Color(0xffd91616),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 35,
+                            child: isConnected
+                                ? ElevatedButton(
+                                    style: const ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        Color(0xffd91616),
+                                      ),
+                                      enableFeedback: true,
+                                      shape: WidgetStatePropertyAll(
+                                        ContinuousRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(100),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      unPairConnection();
+                                      deleteLocalStorage();
+                                      Navigator.pushReplacementNamed(
+                                          context, ble_ui_screen.id);
+                                      setState(() {});
+                                    },
+                                    child: const Text(
+                                      'Unpair',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 120,
+                                    child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor: WidgetStatePropertyAll(
+                                          reconnectTrial >= 3
+                                              ? Color(0xffd91616)
+                                              : Color(0xffb0610c),
+                                        ),
+                                        enableFeedback: true,
+                                        shape: const WidgetStatePropertyAll(
+                                          ContinuousRectangleBorder(
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(100),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        if (isPairLoading == false) {
+                                          connectionChecker();
+                                          if (reconnectTrial >= 3) {
+                                            Navigator.pushReplacementNamed(
+                                                context, ble_ui_screen.id);
+                                          }
+                                        }
+
+                                        setState(() {});
+                                      },
+                                      child: !isPairLoading
+                                          ? Text(
+                                              reconnectTrial >= 3
+                                                  ? 'Exit'
+                                                  : 'Reconnect',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            )
+                                          : LoadingAnimationWidget.dotsTriangle(
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 15,
+                      right: 10,
+                    ),
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: isConnected ? Colors.green : Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 15,
+            ),
             Row(
               children: [
                 Expanded(
