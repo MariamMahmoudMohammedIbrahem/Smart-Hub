@@ -41,7 +41,7 @@ class SmartHUB extends StatelessWidget {
           welcome_loading_screen.id: (context) =>
               const welcome_loading_screen(),
           ble_ui_screen.id: (context) => const ble_ui_screen(),
-          home_screen.id: (context) => home_screen(
+          HomeScreen.id: (context) => HomeScreen(
                 connectionNUM: connectionNUM,
                 connectedDevice: connectedDevice,
                 characteristic: characteristic,

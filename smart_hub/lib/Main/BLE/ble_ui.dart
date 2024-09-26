@@ -172,7 +172,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => home_screen(
+                builder: (context) => HomeScreen(
                   connectionNUM: _connection,
                   connectedDevice: _connectedDevice,
                   characteristic: _Characteristic,

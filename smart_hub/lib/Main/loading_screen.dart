@@ -114,7 +114,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => home_screen(
+                builder: (context) => HomeScreen(
                   connectionNUM: _connection,
                   connectedDevice: _connectedDevice,
                   characteristic: _Characteristic,
