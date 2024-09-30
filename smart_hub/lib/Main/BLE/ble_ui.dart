@@ -169,7 +169,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
             isLoadingMap[device.id] = false;
             isPairedMap[device.id] = true;
             saveToLocalStorage(device);
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomeScreen(
@@ -550,7 +550,8 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, support_screen.id);
+                          Navigator.pushReplacementNamed(
+                              context, support_screen.id);
                         },
                         child: Text(
                           'Support',

@@ -6,9 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import '../../Components/alerts.dart';
 import 'package:provider/provider.dart';
+import '../../Components/battery_level.dart';
 import '../../Components/drawer_list.dart';
 import '../../Components/loadingCards.dart';
 import '../../Components/provider.dart';
+import '../../Components/status_circle_card.dart';
 import '../../Constants/home_constants.dart';
 
 class HomeScreen extends StatefulWidget implements PreferredSizeWidget {
@@ -37,8 +39,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isConnected = true;
   final flutterReactiveBle = FlutterReactiveBle();
   bool isScanning = false;
+  late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
-
+  late StreamSubscription<DiscoveredDevice> _scanStream;
+  List<DiscoveredDevice> _foundDevices = [];
 /* Handling AppBar vars */
   String greetingMessage = "";
   bool showGreeting = true; // To control which text is shown
@@ -58,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// ------------------------------------------------------------------*
   Future<void> initPackages() async {
     _connection = widget.connectionNUM;
+    _connectedDevice = widget.connectedDevice;
     prefs = await SharedPreferences.getInstance();
     /* keeps listening to the connection */
     //receiveData();
@@ -95,6 +100,66 @@ class _HomeScreenState extends State<HomeScreen> {
     if (savedDeviceID != 'null') {}
   }
 
+  /* This function scans the surrounding device to check of the device was still
+  * found or not
+  */
+  void startDeviceScan() {
+    setState(() {
+      isPairLoading = true;
+    });
+    // Clear previously found devices before starting the scan
+
+    // Start scanning for devices
+    _scanStream =
+        flutterReactiveBle.scanForDevices(withServices: []).listen((device) {
+      // Add devices to the discovered list if not already present
+      setState(() {
+        if (!_foundDevices.any((d) => d.id == device.id)) {
+          if (device.id == widget.connectedDevice.id) {
+            reconnectTrial == 0; /* reinit the variable */
+            _foundDevices.clear();
+            _scanStream.cancel(); // Stops scanning
+            connectionChecker();
+          }
+          _foundDevices.add(device); // Add newly found device
+        }
+      });
+    }, onError: (e) {
+      _scanStream.cancel(); // Stops scanning on error
+      setState(() {
+        isPairLoading = false;
+      });
+    });
+
+    // Set a timer to stop scanning after 4 seconds
+    Timer(const Duration(seconds: 3), () {
+      _scanStream.cancel(); // Stops scanning after 4 seconds
+      setState(() {
+        reconnectTrial++;
+      });
+      // Check if the connectedDevice.id is found in the scanned devices
+      if (_foundDevices
+          .any((device) => device.id == widget.connectedDevice.id)) {
+        connectionChecker(); // If found, call the reconnect function
+        reconnectTrial == 0; /* reinit the variable */
+      } else {
+        setState(() {
+          isPairLoading = false;
+          isConnected = false;
+        });
+        if (reconnectTrial >= 2) {
+          toastFun('${_connectedDevice.name} not found\nRedirecting!',
+              getThemeFromLocalStorage());
+          Navigator.pushReplacementNamed(context, ble_ui_screen.id);
+        } else {
+          toastFun(
+              '${_connectedDevice.name} not found\nPlease turn it on and try again.',
+              getThemeFromLocalStorage());
+        }
+      }
+    });
+  }
+
   /*
   Title: Get from Local Storage
   Description: This function uses shared preference package to
@@ -109,39 +174,29 @@ class _HomeScreenState extends State<HomeScreen> {
   Description: This function uses shared preference package to
   delete all variables inside the the key 'ConnectedDevice'
  */
-
   void connectionChecker() {
-    setState(() {
-      isPairLoading = true;
-    });
     // Assuming you have access to the StreamSubscription<ConnectionStateUpdate> variable for this device
     _connection = flutterReactiveBle
         .connectToDevice(
-      id: widget.connectedDevice.id,
+      id: _connectedDevice.id,
       connectionTimeout: const Duration(seconds: 5),
     )
-        .listen((connectionState) {
+        .listen((connectionState) async {
       if (connectionState.connectionState == DeviceConnectionState.connected) {
         // Device is connected
         toastFun('Connection Restored', getThemeFromLocalStorage());
         setState(() {
           isConnected = true;
           isPairLoading = false;
-          reconnectTrial = 0; // Reset the number of the reconnect trials
         });
       } else if (connectionState.connectionState ==
           DeviceConnectionState.disconnected) {
         setState(() {
           isConnected = false;
           isPairLoading = false;
-          reconnectTrial++;
         });
         // Device is disconnected
-        if (reconnectTrial <= 2) {
-          toastFun('Connection Lost', getThemeFromLocalStorage());
-        } else {
-          toastFun('Device not found', getThemeFromLocalStorage());
-        }
+        toastFun('Connection Lost', getThemeFromLocalStorage());
       }
     }, onError: (error) {
       toastFun('Connection Error', getThemeFromLocalStorage());
@@ -205,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
     widget.connectionNUM.cancel();
     _timer.cancel(); // Cancel the timer if the widget is disposed
+    _scanStream.cancel(); /* Stops Scanning */
   }
 
   @override
@@ -240,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       // Allow the title to take available space on the left
                       child: Text(
-                        "SmartHUB",
+                        "HOME",
                         key: const ValueKey("smartHubTitle"),
                         textAlign: TextAlign.start,
                         // Unique key for the SmartHUB text
@@ -291,14 +347,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           : SizedBox(
                               width: 120,
                               child: ElevatedButton(
-                                style: ButtonStyle(
+                                style: const ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    reconnectTrial >= 3
-                                        ? const Color(0xffd91616)
-                                        : const Color(0xffb0610c),
+                                    Color(0xffb0610c),
                                   ),
                                   enableFeedback: true,
-                                  shape: const WidgetStatePropertyAll(
+                                  shape: WidgetStatePropertyAll(
                                     ContinuousRectangleBorder(
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(100),
@@ -308,21 +362,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 onPressed: () {
                                   if (isPairLoading == false) {
-                                    connectionChecker();
-                                    if (reconnectTrial >= 3) {
-                                      Navigator.pushReplacementNamed(
-                                          context, ble_ui_screen.id);
-                                    }
+                                    startDeviceScan();
                                   }
 
                                   setState(() {});
                                 },
                                 child: !isPairLoading
-                                    ? Text(
-                                        reconnectTrial >= 3
-                                            ? 'Exit'
-                                            : 'Reconnect',
-                                        style: const TextStyle(
+                                    ? const Text(
+                                        'Reconnect',
+                                        style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -341,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       drawer: drawerList(
         isConnected: isConnected,
-        connectedDevice: widget.connectedDevice,
+        connectedDevice: _connectedDevice,
       ),
       backgroundColor:
           screenDataProvider.isThemeDark ? Colors.grey[900] : Colors.white,
@@ -350,246 +398,122 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: double.infinity,
-              //height: 190,
-              decoration: BoxDecoration(
-                color: screenDataProvider.isThemeDark
-                    ? Colors.white10
-                    : Colors.black12,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(containerRadius),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 12,
-                            right: 20,
-                          ),
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: isConnected ? Colors.green : Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
+            !screenReady
+                ? Container(
+                    width: double.infinity,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: screenDataProvider.isThemeDark
+                          ? Colors.white12
+                          : Colors.black12,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(containerRadius),
+                      ),
                     ),
-                    Row(
+                    child: Column(
                       children: [
-                        Center(
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.battery_charging_full,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Device Name:',
-                                  style: TextStyle(
-                                    color: screenDataProvider.isThemeDark
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                right: 15,
+                                top: 0,
+                              ),
+                              child: Container(
+                                height: 10,
+                                width: 10,
+                                decoration: BoxDecoration(
+                                  color:
+                                      isConnected ? Colors.green : Colors.red,
+                                  shape: BoxShape.circle,
                                 ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Text(
-                                  widget.connectedDevice.name != ''
-                                      ? widget.connectedDevice.name
-                                      : 'Unknown',
-                                  style: TextStyle(
-                                    color: screenDataProvider.isThemeDark
-                                        ? Colors.white70
-                                        : Colors.black87,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-
                           ],
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${_connectedDevice.name}',
+                              style: TextStyle(
+                                color: screenDataProvider.isThemeDark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: StatusCircleCard(
+                                circleIcon: Icon(
+                                  Icons.thermostat,
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white54
+                                      : Colors.black38,
+                                ),
+                                circleRadius: statusCircleCardRadius,
+                                circleText: '30 °C',
+                                isDark: screenDataProvider.isThemeDark,
+                              ),
+                            ),
+                            Expanded(
+                              child: BatteryIndicator(
+                                batteryLevel: 55,
+                                isCharging: false,
+                              ),
+                            ),
+                            Expanded(
+                              child: StatusCircleCard(
+                                circleIcon: Icon(
+                                  Icons.flash_on,
+                                  color: screenDataProvider.isThemeDark
+                                      ? Colors.white54
+                                      : Colors.black38,
+                                ),
+                                circleRadius: statusCircleCardRadius,
+                                circleText: '180 W',
+                                isDark: screenDataProvider.isThemeDark,
+                              ),
+                            ),
+                          ],
+                        )
                       ],
                     ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    isConnected
-                        ? Container(
-                            height: 35,
-                            width: 100,
-                            decoration: const BoxDecoration(
-                              color: Color(0xffd91616),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(20),
-                              ),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                unPairConnection();
-                                deleteLocalStorage();
-                                Navigator.pushReplacementNamed(
-                                    context, ble_ui_screen.id);
-                                setState(() {});
-                              },
-                              child: const Text(
-                                'Unpair',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: 35,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xffb0610c),
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(30),
-                                  ),
-                                ),
-                                child: TextButton(
-                                  onPressed: () {
-                                    if (isPairLoading == false) {
-                                      connectionChecker();
-                                    }
-                                    setState(() {});
-                                  },
-                                  child: !isPairLoading
-                                      ? const Text(
-                                          'Reconnect',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        )
-                                      : LoadingAnimationWidget.dotsTriangle(
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Container(
-                                height: 35,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xffd91616),
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(30),
-                                  ),
-                                ),
-                                child: TextButton(
-                                    onPressed: () {
-                                      if (isPairLoading == false) {
-                                        Navigator.pushReplacementNamed(
-                                            context, ble_ui_screen.id);
-                                      }
-
-                                      setState(() {});
-                                    },
-                                    child: const Text(
-                                      'Exit',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    )),
-                              ),
-                            ],
-                          ),
-                  ],
-                ),
-              ),
-            ),
+                  )
+                : LoadingCards(
+                    cardBoarderRadius: containerRadius,
+                    cardHeight: 120,
+                    cardWidth: double.infinity,
+                  ),
             const SizedBox(
-              height: 15,
+              height: 20,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: screenReady
-                      ? Container(
-                          width: double.infinity,
-                          height: 300,
-                          decoration: BoxDecoration(
-                            color: screenDataProvider.isThemeDark
-                                ? Colors.white12
-                                : Colors.black12,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(containerRadius),
-                            ),
-                          ),
-                        )
-                      : LoadingCards(
-                          cardBoarderRadius: containerRadius,
-                          cardHeight: 300,
-                          cardWidth: double.infinity,
-                        ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                  child: screenReady
-                      ? Container(
-                          width: double.infinity,
-                          height: 300,
-                          decoration: BoxDecoration(
-                            color: screenDataProvider.isThemeDark
-                                ? Colors.white12
-                                : Colors.black12,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(containerRadius),
-                            ),
-                          ),
-                        )
-                      : LoadingCards(
-                          cardBoarderRadius: containerRadius,
-                          cardHeight: 300,
-                          cardWidth: double.infinity,
-                        ),
-                ),
-              ],
-            ),
+            !screenReady
+                ? Container(
+                    width: double.infinity,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: screenDataProvider.isThemeDark
+                          ? Colors.white12
+                          : Colors.black12,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(containerRadius),
+                      ),
+                    ),
+                  )
+                : LoadingCards(
+                    cardBoarderRadius: containerRadius,
+                    cardHeight: 120,
+                    cardWidth: double.infinity,
+                  ),
             const SizedBox(
               height: 25,
             ),
