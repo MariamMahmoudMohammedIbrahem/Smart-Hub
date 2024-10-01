@@ -59,6 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Pair loading animation */
   bool isPairLoading = false;
 
+  /* Frame Variables */
+  double batteryTemp = 30;
+  double batteryPower = 60;
+
   /// ------------------------------------------------------------------*
   Future<void> initPackages() async {
     _connection = widget.connectionNUM;
@@ -106,6 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void startDeviceScan() {
     setState(() {
       isPairLoading = true;
+      reconnectTrial++;
+      isConnected = false;
     });
     // Clear previously found devices before starting the scan
 
@@ -134,24 +140,20 @@ class _HomeScreenState extends State<HomeScreen> {
     // Set a timer to stop scanning after 4 seconds
     Timer(const Duration(seconds: 3), () {
       _scanStream.cancel(); // Stops scanning after 4 seconds
-      setState(() {
-        reconnectTrial++;
-      });
       // Check if the connectedDevice.id is found in the scanned devices
       if (_foundDevices
           .any((device) => device.id == widget.connectedDevice.id)) {
         connectionChecker(); // If found, call the reconnect function
         reconnectTrial == 0; /* reinit the variable */
       } else {
-        setState(() {
-          isPairLoading = false;
-          isConnected = false;
-        });
         if (reconnectTrial >= 2) {
           toastFun('${_connectedDevice.name} not found\nRedirecting!',
               getThemeFromLocalStorage());
           Navigator.pushReplacementNamed(context, ble_ui_screen.id);
         } else {
+          setState(() {
+            isPairLoading = false;
+          });
           toastFun(
               '${_connectedDevice.name} not found\nPlease turn it on and try again.',
               getThemeFromLocalStorage());
@@ -179,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _connection = flutterReactiveBle
         .connectToDevice(
       id: _connectedDevice.id,
-      connectionTimeout: const Duration(seconds: 5),
+      connectionTimeout: const Duration(seconds: 2),
     )
         .listen((connectionState) async {
       if (connectionState.connectionState == DeviceConnectionState.connected) {
@@ -266,6 +268,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final screenDataProvider = Provider.of<ScreenDataProvider>(context);
+    Color thermoColor;
+    Color powerColor;
+    if (batteryTemp > 70) {
+      thermoColor = Colors.red;
+    } else if (batteryTemp <= 70 && batteryTemp > 50) {
+      thermoColor = Colors.yellow;
+    } else if (batteryTemp <= 50 && batteryTemp >= 0) {
+      thermoColor = Colors.green;
+    } else {
+      thermoColor = Colors.red;
+    }
+    if (batteryPower > 180) {
+      powerColor = Colors.red;
+    } else {
+      powerColor = Color(0xffab9424);
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor:
@@ -401,11 +419,10 @@ class _HomeScreenState extends State<HomeScreen> {
             !screenReady
                 ? Container(
                     width: double.infinity,
-                    height: 120,
                     decoration: BoxDecoration(
                       color: screenDataProvider.isThemeDark
-                          ? Colors.white12
-                          : Colors.black12,
+                          ? Color(0xFF221775)
+                          : Colors.indigo,
                       borderRadius: BorderRadius.all(
                         Radius.circular(containerRadius),
                       ),
@@ -449,15 +466,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                        SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
                               child: StatusCircleCard(
                                 circleIcon: Icon(
                                   Icons.thermostat,
-                                  color: screenDataProvider.isThemeDark
-                                      ? Colors.white54
-                                      : Colors.black38,
+                                  color: thermoColor,
                                 ),
                                 circleRadius: statusCircleCardRadius,
                                 circleText: '30 °C',
@@ -466,17 +482,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Expanded(
                               child: BatteryIndicator(
-                                batteryLevel: 55,
+                                batteryLevel: 0.32,
                                 isCharging: false,
+                                isDark: screenDataProvider.isThemeDark,
+                                circleRadius: statusCircleCardRadius,
                               ),
                             ),
                             Expanded(
                               child: StatusCircleCard(
                                 circleIcon: Icon(
                                   Icons.flash_on,
-                                  color: screenDataProvider.isThemeDark
-                                      ? Colors.white54
-                                      : Colors.black38,
+                                  color: powerColor,
                                 ),
                                 circleRadius: statusCircleCardRadius,
                                 circleText: '180 W',
@@ -484,7 +500,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ],
-                        )
+                        ),
+                        SizedBox(height: 15),
                       ],
                     ),
                   )

@@ -20,10 +20,12 @@ class StatusCircleCard extends StatelessWidget {
       width: circleRadius,
       height: circleRadius,
       decoration: BoxDecoration(
-        color: isDark ? Colors.white54 : Colors.black38,
+        color: Colors.white12,
         shape: BoxShape.circle,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           circleIcon,
           SizedBox(
@@ -31,6 +33,10 @@ class StatusCircleCard extends StatelessWidget {
           ),
           Text(
             circleText,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

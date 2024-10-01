@@ -1,43 +1,128 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-class BatteryIndicator extends StatelessWidget {
-  final double batteryLevel; // A value between 0 and 100
-  final bool isCharging;
+import '../Constants/battery_constants.dart';
 
-  BatteryIndicator({required this.batteryLevel, required this.isCharging});
+class BatteryIndicator extends StatelessWidget {
+  final double batteryLevel; // A value between 0 and 1
+  final bool isCharging;
+  final double circleRadius;
+  final bool isDark;
+
+  BatteryIndicator({
+    required this.batteryLevel,
+    required this.isCharging,
+    required this.circleRadius,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
     Color batteryColor;
-    if (batteryLevel >= 70) {
+    Color chargingColor;
+    if (batteryLevel > 0.75) {
       batteryColor = Colors.green;
-    } else if (batteryLevel >= 30) {
+      chargingColor = Colors.white;
+    } else if (batteryLevel <= 0.75 && batteryLevel > 0.3) {
       batteryColor = Colors.yellow;
+      chargingColor = Colors.green;
+    } else if (batteryLevel <= 0.3 && batteryLevel >= 0) {
+      batteryColor = Colors.red;
+      chargingColor = Colors.green;
     } else {
       batteryColor = Colors.red;
+      chargingColor = Colors.green;
     }
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        LinearPercentIndicator(
-          width: 200.0,
-          lineHeight: 20.0,
-          percent: batteryLevel,
-          backgroundColor: Colors.grey[300]!,
-          progressColor: batteryColor,
-          center: Text("${(batteryLevel * 100).toInt()}%"),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.all(
+          Radius.circular(
+            20,
+          ),
         ),
-        if (isCharging)
-          Positioned(
-            right: 10,
-            child: Icon(
-              Icons.bolt,
-              color: Colors.yellow,
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                children: [
+                  // Outer battery container (battery outline)
+                  Container(
+                    width: 45,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white38, width: 2),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  // Battery tip (small rectangular shape for the tip of the battery)
+
+                  // Filled portion of the battery representing the current battery level
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 2.6,
+                      left: 2,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: Container(
+                        width: 45 *
+                            batteryLevel, // Width based on battery percentage
+                        height: 15,
+                        color:
+                            batteryColor, // Color changes based on battery level
+                      ),
+                    ),
+                  ),
+                  !isCharging
+                      ? Positioned(
+                          left: 16,
+                          top: 2,
+                          child: Icon(
+                            Icons.flash_on,
+                            color: chargingColor,
+                            size: 18,
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
+              Container(
+                width: 4,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: Colors.white38,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(
+                      edgeRadius,
+                    ),
+                    bottomRight: Radius.circular(
+                      edgeRadius,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Text(
+            '${(batteryLevel * 100).toInt()}%',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }
