@@ -6,12 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import '../../Components/alerts.dart';
 import 'package:provider/provider.dart';
-import '../../Components/battery_level.dart';
+import 'components/battery_level.dart';
 import '../../Components/drawer_list.dart';
-import '../../Components/loadingCards.dart';
+import 'components/home_battery.dart';
+import 'components/home_wireless.dart';
+import 'components/loadingCards.dart';
 import '../../Components/provider.dart';
-import '../../Components/status_circle_card.dart';
-import '../../Constants/home_constants.dart';
+import 'components/status_circle_card.dart';
+import 'constants/home_constants.dart';
 
 class HomeScreen extends StatefulWidget implements PreferredSizeWidget {
   static String id = 'home_screen';
@@ -43,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late StreamSubscription<ConnectionStateUpdate> _connection;
   late StreamSubscription<DiscoveredDevice> _scanStream;
   List<DiscoveredDevice> _foundDevices = [];
+
 /* Handling AppBar vars */
   String greetingMessage = "";
   bool showGreeting = true; // To control which text is shown
@@ -60,8 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isPairLoading = false;
 
   /* Frame Variables */
+  /* Battery part */
+  double batteryLevel = 0.2;
   double batteryTemp = 30;
   double batteryPower = 60;
+
+  /* Wireless Part */
+  double wirelessPower = 23;
 
   /// ------------------------------------------------------------------*
   Future<void> initPackages() async {
@@ -118,11 +126,12 @@ class _HomeScreenState extends State<HomeScreen> {
     // Start scanning for devices
     _scanStream =
         flutterReactiveBle.scanForDevices(withServices: []).listen((device) {
+      print(reconnectTrial);
       // Add devices to the discovered list if not already present
       setState(() {
         if (!_foundDevices.any((d) => d.id == device.id)) {
           if (device.id == widget.connectedDevice.id) {
-            reconnectTrial == 0; /* reinit the variable */
+            reconnectTrial = 0; /* reinit the variable */
             _foundDevices.clear();
             _scanStream.cancel(); // Stops scanning
             connectionChecker();
@@ -140,24 +149,19 @@ class _HomeScreenState extends State<HomeScreen> {
     // Set a timer to stop scanning after 4 seconds
     Timer(const Duration(seconds: 3), () {
       _scanStream.cancel(); // Stops scanning after 4 seconds
-      // Check if the connectedDevice.id is found in the scanned devices
-      if (_foundDevices
-          .any((device) => device.id == widget.connectedDevice.id)) {
-        connectionChecker(); // If found, call the reconnect function
-        reconnectTrial == 0; /* reinit the variable */
+      print(reconnectTrial);
+
+      if (reconnectTrial >= 2) {
+        toastFun('${_connectedDevice.name} not found\nRedirecting!',
+            getThemeFromLocalStorage());
+        Navigator.pushReplacementNamed(context, ble_ui_screen.id);
       } else {
-        if (reconnectTrial >= 2) {
-          toastFun('${_connectedDevice.name} not found\nRedirecting!',
-              getThemeFromLocalStorage());
-          Navigator.pushReplacementNamed(context, ble_ui_screen.id);
-        } else {
-          setState(() {
-            isPairLoading = false;
-          });
-          toastFun(
-              '${_connectedDevice.name} not found\nPlease turn it on and try again.',
-              getThemeFromLocalStorage());
-        }
+        setState(() {
+          isPairLoading = false;
+        });
+        toastFun(
+            '${_connectedDevice.name} not found\nPlease turn it on and try again.',
+            getThemeFromLocalStorage());
       }
     });
   }
@@ -177,11 +181,12 @@ class _HomeScreenState extends State<HomeScreen> {
   delete all variables inside the the key 'ConnectedDevice'
  */
   void connectionChecker() {
+    print('connectionChcker function');
     // Assuming you have access to the StreamSubscription<ConnectionStateUpdate> variable for this device
     _connection = flutterReactiveBle
         .connectToDevice(
       id: _connectedDevice.id,
-      connectionTimeout: const Duration(seconds: 2),
+      connectionTimeout: const Duration(seconds: 4),
     )
         .listen((connectionState) async {
       if (connectionState.connectionState == DeviceConnectionState.connected) {
@@ -417,119 +422,44 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             !screenReady
-                ? Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: screenDataProvider.isThemeDark
-                          ? Color(0xFF221775)
-                          : Colors.indigo,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(containerRadius),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                right: 15,
-                                top: 0,
-                              ),
-                              child: Container(
-                                height: 10,
-                                width: 10,
-                                decoration: BoxDecoration(
-                                  color:
-                                      isConnected ? Colors.green : Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${_connectedDevice.name}',
-                              style: TextStyle(
-                                color: screenDataProvider.isThemeDark
-                                    ? Colors.white70
-                                    : Colors.black87,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: StatusCircleCard(
-                                circleIcon: Icon(
-                                  Icons.thermostat,
-                                  color: thermoColor,
-                                ),
-                                circleRadius: statusCircleCardRadius,
-                                circleText: '30 °C',
-                                isDark: screenDataProvider.isThemeDark,
-                              ),
-                            ),
-                            Expanded(
-                              child: BatteryIndicator(
-                                batteryLevel: 0.32,
-                                isCharging: false,
-                                isDark: screenDataProvider.isThemeDark,
-                                circleRadius: statusCircleCardRadius,
-                              ),
-                            ),
-                            Expanded(
-                              child: StatusCircleCard(
-                                circleIcon: Icon(
-                                  Icons.flash_on,
-                                  color: powerColor,
-                                ),
-                                circleRadius: statusCircleCardRadius,
-                                circleText: '180 W',
-                                isDark: screenDataProvider.isThemeDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 15),
-                      ],
-                    ),
-                  )
+                ? batteryContainer(
+                    screenDataProvider: screenDataProvider,
+                    isConnected: isConnected,
+                    connectedDevice: _connectedDevice,
+                    thermoColor: thermoColor,
+                    batteryTemp: batteryTemp,
+                    batteryLevel: batteryLevel,
+                    powerColor: powerColor,
+                    batteryPower: batteryPower)
                 : LoadingCards(
                     cardBoarderRadius: containerRadius,
-                    cardHeight: 120,
+                    cardHeight: 140,
                     cardWidth: double.infinity,
+                    colorOne: screenDataProvider.isThemeDark
+                        ? Color(0x15656566)
+                        : Color(0x221727a3),
+                    colorTwo: screenDataProvider.isThemeDark
+                        ? Colors.white12
+                        : Color(0xaa1727a3),
                   ),
             const SizedBox(
               height: 20,
             ),
             !screenReady
-                ? Container(
-                    width: double.infinity,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: screenDataProvider.isThemeDark
-                          ? Colors.white12
-                          : Colors.black12,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(containerRadius),
-                      ),
-                    ),
+                ? home_wireless(
+                    isDark: screenDataProvider.isThemeDark,
+                    wirelessPower: wirelessPower,
                   )
                 : LoadingCards(
                     cardBoarderRadius: containerRadius,
                     cardHeight: 120,
                     cardWidth: double.infinity,
+                    colorOne: screenDataProvider.isThemeDark
+                        ? Color(0x15656566)
+                        : Color(0x441727a3),
+                    colorTwo: screenDataProvider.isThemeDark
+                        ? Colors.white12
+                        : Color(0x551727a3),
                   ),
             const SizedBox(
               height: 25,
@@ -579,6 +509,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardBoarderRadius: containerRadius,
                     cardHeight: 120,
                     cardWidth: double.infinity,
+                    colorOne: Color(0x22656566),
+                    colorTwo: screenDataProvider.isThemeDark
+                        ? Colors.white12
+                        : Colors.black12,
                   ),
             const SizedBox(
               height: 10,
@@ -606,6 +540,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardBoarderRadius: containerRadius,
                     cardHeight: 120,
                     cardWidth: double.infinity,
+                    colorOne: Color(0x22656566),
+                    colorTwo: screenDataProvider.isThemeDark
+                        ? Colors.white12
+                        : Colors.black12,
                   ),
             const SizedBox(
               height: 10,
@@ -630,6 +568,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardBoarderRadius: containerRadius,
                           cardHeight: 120,
                           cardWidth: double.infinity,
+                          colorOne: Color(0x22656566),
+                          colorTwo: screenDataProvider.isThemeDark
+                              ? Colors.white12
+                              : Colors.black12,
                         ),
                 ),
                 const SizedBox(
@@ -653,6 +595,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardBoarderRadius: containerRadius,
                           cardHeight: 120,
                           cardWidth: double.infinity,
+                          colorOne: Color(0x22656566),
+                          colorTwo: screenDataProvider.isThemeDark
+                              ? Colors.white12
+                              : Colors.black12,
                         ),
                 ),
               ],
