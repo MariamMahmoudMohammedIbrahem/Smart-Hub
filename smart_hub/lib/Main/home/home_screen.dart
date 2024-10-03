@@ -149,12 +149,16 @@ class _HomeScreenState extends State<HomeScreen> {
     // Set a timer to stop scanning after 4 seconds
     Timer(const Duration(seconds: 3), () {
       _scanStream.cancel(); // Stops scanning after 4 seconds
-      print(reconnectTrial);
 
       if (reconnectTrial >= 2) {
         toastFun('${_connectedDevice.name} not found\nRedirecting!',
             getThemeFromLocalStorage());
         Navigator.pushReplacementNamed(context, ble_ui_screen.id);
+      } else if (reconnectTrial == 0) {
+        setState(() {
+          isPairLoading = false;
+        });
+        /* Do nothing here */
       } else {
         setState(() {
           isPairLoading = false;
