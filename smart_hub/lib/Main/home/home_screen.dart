@@ -6,13 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
 import '../../Components/alerts.dart';
 import 'package:provider/provider.dart';
-import 'components/battery_level.dart';
 import '../../Components/drawer_list.dart';
 import 'components/home_battery.dart';
 import 'components/home_wireless.dart';
 import 'components/loadingCards.dart';
 import '../../Components/provider.dart';
-import 'components/status_circle_card.dart';
+import 'components/ports_containers.dart';
 import 'constants/home_constants.dart';
 
 class HomeScreen extends StatefulWidget implements PreferredSizeWidget {
@@ -62,15 +61,34 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Pair loading animation */
   bool isPairLoading = false;
 
-  /* Frame Variables */
+  /**-Frame Variables-**/
   /* Battery part */
   double batteryLevel = 0.2;
   double batteryTemp = 30;
   double batteryPower = 60;
+  bool battery_isCharging = false;
 
   /* Wireless Part */
   double wirelessPower = 23;
+  bool wireless_isCharging = false;
+  /* Ports Connection */
+  /* Port C */
+  bool portC_ChannelOne_isConnected = false;
+  bool portC_ChannelTwo_isConnected = false;
+  double portC_ChannelOne_Power = 0;
+  double portC_ChannelTwo_Power = 0;
+  /* Port A */
+  bool portA_ChannelOne_isConnected = false;
+  bool portA_ChannelTwo_isConnected = false;
+  double portA_ChannelOne_Power = 0;
+  double portA_ChannelTwo_Power = 0;
+  /* Others */
+  bool sdCard_isConnected = false;
+  bool HDMI_isConnected = false;
 
+  String Port_First_Container_Name = 'P1';
+  String Port_Second_Container_Name = 'P2';
+/**---------------------------Port END------------------------**/
   /// ------------------------------------------------------------------*
   Future<void> initPackages() async {
     _connection = widget.connectionNUM;
@@ -443,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? Color(0x15656566)
                         : Color(0x221727a3),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Colors.white12
+                        ? Color(0x0AFFFFFF)
                         : Color(0xaa1727a3),
                   ),
             const SizedBox(
@@ -462,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? Color(0x15656566)
                         : Color(0x441727a3),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Colors.white12
+                        ? Color(0x0AFFFFFF)
                         : Color(0x551727a3),
                   ),
             const SizedBox(
@@ -490,24 +508,29 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 25,
             ),
-            screenReady
+            !screenReady
                 ? Container(
                     width: double.infinity, // Width of the circle
                     height: 120, // Height of the circle
                     decoration: BoxDecoration(
                       color: screenDataProvider.isThemeDark
-                          ? Colors.white12
-                          : Colors.black12, // Background color of the circle
+                          ? Color(0x0AFFFFFF)
+                          : Color(0x11000000), // Background color of the circle
                       borderRadius: BorderRadius.all(
                         Radius.circular(containerRadius),
                       ), // Making the container circular
                     ),
-                    child: const Center(
-                      child: Text(
-                        "Circle",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    child: portsContainer(
+                        main_Container_Name: portC_Name,
+                        screenDataProvider: screenDataProvider,
+                        Container_One_Name: Port_First_Container_Name,
+                        port_ChannelOne_isConnected:
+                            portA_ChannelOne_isConnected,
+                        port_ChannelOne_Power: portC_ChannelOne_Power,
+                        Container_Two_Name: Port_Second_Container_Name,
+                        port_ChannelTwo_isConnected:
+                            portC_ChannelTwo_isConnected,
+                        port_ChannelTwo_Power: portC_ChannelTwo_Power),
                   )
                 : LoadingCards(
                     cardBoarderRadius: containerRadius,
@@ -515,30 +538,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardWidth: double.infinity,
                     colorOne: Color(0x22656566),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Colors.white12
+                        ? Color(0x0AFFFFFF)
                         : Colors.black12,
                   ),
             const SizedBox(
               height: 10,
             ),
-            screenReady
+            !screenReady
                 ? Container(
                     width: double.infinity, // Width of the circle
                     height: 120, // Height of the circle
                     decoration: BoxDecoration(
                       color: screenDataProvider.isThemeDark
-                          ? Colors.white12
-                          : Colors.black12, // Background color of the circle
+                          ? Color(0x0AFFFFFF)
+                          : Color(0x11000000), // Background color of the circle
                       borderRadius: BorderRadius.all(
                         Radius.circular(containerRadius),
                       ), // Making the container circular
                     ),
-                    child: const Center(
-                      child: Text(
-                        "Circle",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    child: portsContainer(
+                        main_Container_Name: portA_Name,
+                        screenDataProvider: screenDataProvider,
+                        Container_One_Name: Port_First_Container_Name,
+                        port_ChannelOne_isConnected:
+                            portA_ChannelOne_isConnected,
+                        port_ChannelOne_Power: portA_ChannelOne_Power,
+                        Container_Two_Name: Port_Second_Container_Name,
+                        port_ChannelTwo_isConnected:
+                            portA_ChannelTwo_isConnected,
+                        port_ChannelTwo_Power: portA_ChannelTwo_Power),
                   )
                 : LoadingCards(
                     cardBoarderRadius: containerRadius,
@@ -546,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardWidth: double.infinity,
                     colorOne: Color(0x22656566),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Colors.white12
+                        ? Color(0x0AFFFFFF)
                         : Colors.black12,
                   ),
             const SizedBox(
@@ -555,16 +583,93 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Expanded(
-                  child: screenReady
+                  child: !screenReady
                       ? Container(
                           width: double.infinity,
                           height: 120,
                           decoration: BoxDecoration(
                             color: screenDataProvider.isThemeDark
-                                ? Colors.white12
-                                : Colors.black12,
+                                ? Color(0x0AFFFFFF)
+                                : Color(0x11000000),
                             borderRadius: BorderRadius.all(
                               Radius.circular(containerRadius),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Container(
+                                        child: const Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'SDCard',
+                                                  style: TextStyle(
+                                                    color: Color(0xddffffff),
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 1,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Icon(
+                                                  Icons.sd_card,
+                                                  color: Color(0x66ffffff),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Container(
+                                            width: 15,
+                                            height: 3,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                Radius.circular(
+                                                  40,
+                                                ),
+                                              ),
+                                              color: sdCard_isConnected
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                sdCard_isConnected
+                                    ? Row(
+                                        children: [],
+                                      )
+                                    : Text(
+                                        'No Information',
+                                        style: TextStyle(
+                                          color: Color(0x88FFFFFF),
+                                        ),
+                                      )
+                              ],
                             ),
                           ),
                         )
@@ -574,7 +679,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardWidth: double.infinity,
                           colorOne: Color(0x22656566),
                           colorTwo: screenDataProvider.isThemeDark
-                              ? Colors.white12
+                              ? Color(0x0AFFFFFF)
                               : Colors.black12,
                         ),
                 ),
@@ -582,16 +687,93 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 15,
                 ),
                 Expanded(
-                  child: screenReady
+                  child: !screenReady
                       ? Container(
                           width: double.infinity,
                           height: 120,
                           decoration: BoxDecoration(
                             color: screenDataProvider.isThemeDark
-                                ? Colors.white12
-                                : Colors.black12,
+                                ? Color(0x0AFFFFFF)
+                                : Color(0x11000000),
                             borderRadius: BorderRadius.all(
                               Radius.circular(containerRadius),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Container(
+                                        child: const Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'HDMI',
+                                                  style: TextStyle(
+                                                    color: Color(0xddffffff),
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 1,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Icon(
+                                                  Icons.settings_input_hdmi,
+                                                  color: Color(0x66ffffff),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Container(
+                                            width: 15,
+                                            height: 3,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                Radius.circular(
+                                                  40,
+                                                ),
+                                              ),
+                                              color: HDMI_isConnected
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                HDMI_isConnected
+                                    ? Row(
+                                        children: [],
+                                      )
+                                    : Text(
+                                        'No Information',
+                                        style: TextStyle(
+                                          color: Color(0x88FFFFFF),
+                                        ),
+                                      )
+                              ],
                             ),
                           ),
                         )
@@ -601,7 +783,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardWidth: double.infinity,
                           colorOne: Color(0x22656566),
                           colorTwo: screenDataProvider.isThemeDark
-                              ? Colors.white12
+                              ? Color(0x0AFFFFFF)
                               : Colors.black12,
                         ),
                 ),
