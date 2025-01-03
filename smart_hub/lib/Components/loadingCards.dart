@@ -20,11 +20,11 @@ class LoadingCards extends StatelessWidget {
       borderRadius: BorderRadius.all(
         Radius.circular(cardBoarderRadius),
       ),
-      animationDuration: Duration(seconds: 1),
-      animationDurationTwo: Duration(seconds: 1),
-      margin: EdgeInsets.only(bottom: 10),
+      animationDuration: const Duration(seconds: 1),
+      animationDurationTwo: const Duration(seconds: 1),
+      margin: const EdgeInsets.only(bottom: 10),
       cardLoadingTheme:
-          CardLoadingTheme(colorOne: Colors.white12, colorTwo: Colors.black12),
+          const CardLoadingTheme(colorOne: Colors.white12, colorTwo: Colors.black12),
     );
   }
 }

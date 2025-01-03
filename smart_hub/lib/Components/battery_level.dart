@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 
 import '../Constants/battery_constants.dart';
 
@@ -9,7 +8,7 @@ class BatteryIndicator extends StatelessWidget {
   final double circleRadius;
   final bool isDark;
 
-  BatteryIndicator({
+  const BatteryIndicator({super.key, 
     required this.batteryLevel,
     required this.isCharging,
     required this.circleRadius,
@@ -35,7 +34,7 @@ class BatteryIndicator extends StatelessWidget {
     }
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.black12,
         borderRadius: BorderRadius.all(
           Radius.circular(
@@ -45,7 +44,7 @@ class BatteryIndicator extends StatelessWidget {
       ),
       child: Column(
         children: [
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           Row(
@@ -111,12 +110,12 @@ class BatteryIndicator extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(
+          const SizedBox(
             height: 5,
           ),
           Text(
             '${(batteryLevel * 100).toInt()}%',
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
             ),

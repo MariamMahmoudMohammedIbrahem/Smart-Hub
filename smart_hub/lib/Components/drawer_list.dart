@@ -94,7 +94,7 @@ class _drawerListState extends State<drawerList> {
                       children: [
                         Text(
                           'SmartHUB $version',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white54,
                           ),
                         ),
@@ -138,14 +138,14 @@ class _drawerListState extends State<drawerList> {
                   // Expandable section
                   if (isConnectionExpanded) ...[
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: screenDataProvider.isThemeDark
                               ? Colors.white12
                               : Colors.black26,
-                          borderRadius: BorderRadius.all(
+                          borderRadius: const BorderRadius.all(
                             Radius.circular(20),
                           ),
                         ),
@@ -173,7 +173,7 @@ class _drawerListState extends State<drawerList> {
                                         ),
                                         Text(
                                           widget.connectedDevice.name != ''
-                                              ? '${widget.connectedDevice.name}'
+                                              ? widget.connectedDevice.name
                                               : 'Unknown',
                                           style: TextStyle(
                                             color:
@@ -206,7 +206,7 @@ class _drawerListState extends State<drawerList> {
                                           width: 10,
                                         ),
                                         Text(
-                                          '${widget.connectedDevice.id}',
+                                          widget.connectedDevice.id,
                                           style: TextStyle(
                                             color:
                                                 screenDataProvider.isThemeDark
@@ -290,7 +290,7 @@ class _drawerListState extends State<drawerList> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 5,
                   ),
                   Icon(
@@ -322,7 +322,7 @@ class _drawerListState extends State<drawerList> {
               // Adjust height based on state
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: isThemeExpanded
-                  ? Container(
+                  ? SizedBox(
                       height: 60,
                       child: SliderButton(
                         baseColor: screenDataProvider.isThemeDark
@@ -349,7 +349,7 @@ class _drawerListState extends State<drawerList> {
                           screenDataProvider.isThemeDark
                               ? 'Slide to switch\nto Light Theme'
                               : 'Slide to switch\nto Dark Theme',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                             fontSize: 18,

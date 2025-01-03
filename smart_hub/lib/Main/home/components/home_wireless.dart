@@ -18,7 +18,7 @@ class home_wireless extends StatelessWidget {
       width: double.infinity,
       height: 140,
       decoration: BoxDecoration(
-        color: isDark ? Color(0x15656566) : Color(0x441727a3),
+        color: isDark ? const Color(0x15656566) : const Color(0x441727a3),
         borderRadius: BorderRadius.all(
           Radius.circular(containerRadius),
         ),
@@ -43,7 +43,7 @@ class home_wireless extends StatelessWidget {
                       Text(
                         'Wireless',
                         style: TextStyle(
-                          color: isDark ? Color(0xffd4d2d2) : Colors.black87,
+                          color: isDark ? const Color(0xffd4d2d2) : Colors.black87,
                           fontWeight: FontWeight.w900,
                           fontSize: 18,
                           letterSpacing: 2,
@@ -83,7 +83,7 @@ class home_wireless extends StatelessWidget {
                   child: Text(
                     'Disconnected',
                     style: TextStyle(
-                      color: isDark ? Color(0x55d4d2d2) : Colors.black87,
+                      color: isDark ? const Color(0x55d4d2d2) : Colors.black87,
                       fontSize: 13,
                       letterSpacing: 2,
                     ),
@@ -92,10 +92,10 @@ class home_wireless extends StatelessWidget {
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
+                    const SizedBox(
                       height: 70,
                       width: 80,
-                      child: const RippleWave(
+                      child: RippleWave(
                         color: Colors.blueAccent,
                         repeat: true,
                         child: Icon(
@@ -108,7 +108,7 @@ class home_wireless extends StatelessWidget {
                     Text(
                       '$wirelessPower W',
                       style: TextStyle(
-                        color: isDark ? Color(0xaad4d2d2) : Colors.black87,
+                        color: isDark ? const Color(0xaad4d2d2) : Colors.black87,
                         fontSize: 15,
                         letterSpacing: 2,
                         fontWeight: FontWeight.w700,

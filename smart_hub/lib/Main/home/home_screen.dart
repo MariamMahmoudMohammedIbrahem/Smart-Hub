@@ -1,16 +1,18 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_hub/Main/BLE/ble_ui.dart';
+
 import '../../Components/alerts.dart';
-import 'package:provider/provider.dart';
 import '../../Components/drawer_list.dart';
+import '../../Components/provider.dart';
 import 'components/home_battery.dart';
 import 'components/home_wireless.dart';
 import 'components/loadingCards.dart';
-import '../../Components/provider.dart';
 import 'components/ports_containers.dart';
 import 'constants/home_constants.dart';
 
@@ -43,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
   late StreamSubscription<DiscoveredDevice> _scanStream;
-  List<DiscoveredDevice> _foundDevices = [];
+  final List<DiscoveredDevice> _foundDevices = [];
 
 /* Handling AppBar vars */
   String greetingMessage = "";
@@ -54,6 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late final SharedPreferences prefs;
   late String savedDeviceID;
   bool screenReady = false;
+  /* Receiving Var */
+  final List<int> _receivedData = [];
+  String _dataToSend = ""; // Variable to store the data to send
 
   /* Variable to handle the reconnection */
   int reconnectTrial = 0;
@@ -61,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /* Pair loading animation */
   bool isPairLoading = false;
 
-  /**-Frame Variables-**/
+  /// -Frame Variables-*
   /* Battery part */
   double batteryLevel = 0.2;
   double batteryTemp = 30;
@@ -73,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool wireless_isCharging = false;
   /* Ports Connection */
   /* Port C */
-  bool portC_ChannelOne_isConnected = false;
+  bool portC_ChannelOne_isConnected = true;
   bool portC_ChannelTwo_isConnected = false;
   double portC_ChannelOne_Power = 0;
   double portC_ChannelTwo_Power = 0;
@@ -89,13 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String Port_First_Container_Name = 'P1';
   String Port_Second_Container_Name = 'P2';
 /**---------------------------Port END------------------------**/
-  /// ------------------------------------------------------------------*
   Future<void> initPackages() async {
+    /* Just passing the variables */
     _connection = widget.connectionNUM;
     _connectedDevice = widget.connectedDevice;
+    /* Save the device in the storage */
     prefs = await SharedPreferences.getInstance();
     /* keeps listening to the connection */
-    //receiveData();
+    _receiveData();
+    /* Check on the Connection */
     connectionChecker();
   }
 
@@ -203,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
   delete all variables inside the the key 'ConnectedDevice'
  */
   void connectionChecker() {
-    print('connectionChcker function');
+    print('connectionChecker function');
     // Assuming you have access to the StreamSubscription<ConnectionStateUpdate> variable for this device
     _connection = flutterReactiveBle
         .connectToDevice(
@@ -250,9 +257,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Function to receive data from the connected device
-  Stream<List<int>> receiveData() {
-    return FlutterReactiveBle()
-        .subscribeToCharacteristic(widget.characteristic);
+  void _receiveData() {
+    FlutterReactiveBle()
+        .subscribeToCharacteristic(widget.characteristic)
+        .listen((data) {
+      setState(() {
+        if (_receivedData.length + data.length > 15) {
+          _receivedData.clear(); // Clear the list if it exceeds the max size
+        }
+        _receivedData.addAll(data); // Add new bytes to the list
+      });
+    }, onError: (error) {
+      print("Error receiving data: $error");
+    });
+  }
+
+  // Convert bytes to their character representation
+  String _bytesToCharacters(List<int> bytes) {
+    return bytes
+        .map((byte) =>
+            (byte >= 32 && byte <= 126) ? String.fromCharCode(byte) : '.')
+        .join(); // Replace non-printable characters with '.'
+  }
+
+  String byteDisplay(int index) {
+    if (index < _receivedData.length) {
+      return '0x${_receivedData[index].toRadixString(16).toUpperCase()} (${_bytesToCharacters([
+            _receivedData[index]
+          ])})';
+    } else {
+      return '0x00 (-)'; // Default for missing data
+    }
   }
 
   // Get the appropriate greeting message based on the current time
@@ -309,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (batteryPower > 180) {
       powerColor = Colors.red;
     } else {
-      powerColor = Color(0xffab9424);
+      powerColor = const Color(0xffab9424);
     }
     return Scaffold(
       appBar: AppBar(
@@ -458,11 +493,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardHeight: 140,
                     cardWidth: double.infinity,
                     colorOne: screenDataProvider.isThemeDark
-                        ? Color(0x15656566)
-                        : Color(0x221727a3),
+                        ? const Color(0x15656566)
+                        : const Color(0x221727a3),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Color(0x0AFFFFFF)
-                        : Color(0xaa1727a3),
+                        ? const Color(0x0AFFFFFF)
+                        : const Color(0xaa1727a3),
                   ),
             const SizedBox(
               height: 20,
@@ -477,11 +512,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardHeight: 120,
                     cardWidth: double.infinity,
                     colorOne: screenDataProvider.isThemeDark
-                        ? Color(0x15656566)
-                        : Color(0x441727a3),
+                        ? const Color(0x15656566)
+                        : const Color(0x441727a3),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Color(0x0AFFFFFF)
-                        : Color(0x551727a3),
+                        ? const Color(0x0AFFFFFF)
+                        : const Color(0x551727a3),
                   ),
             const SizedBox(
               height: 25,
@@ -514,8 +549,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 120, // Height of the circle
                     decoration: BoxDecoration(
                       color: screenDataProvider.isThemeDark
-                          ? Color(0x0AFFFFFF)
-                          : Color(0x11000000), // Background color of the circle
+                          ? const Color(0x0AFFFFFF)
+                          : const Color(
+                              0x11000000), // Background color of the circle
                       borderRadius: BorderRadius.all(
                         Radius.circular(containerRadius),
                       ), // Making the container circular
@@ -536,9 +572,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardBoarderRadius: containerRadius,
                     cardHeight: 120,
                     cardWidth: double.infinity,
-                    colorOne: Color(0x22656566),
+                    colorOne: const Color(0x22656566),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Color(0x0AFFFFFF)
+                        ? const Color(0x0AFFFFFF)
                         : Colors.black12,
                   ),
             const SizedBox(
@@ -550,8 +586,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 120, // Height of the circle
                     decoration: BoxDecoration(
                       color: screenDataProvider.isThemeDark
-                          ? Color(0x0AFFFFFF)
-                          : Color(0x11000000), // Background color of the circle
+                          ? const Color(0x0AFFFFFF)
+                          : const Color(
+                              0x11000000), // Background color of the circle
                       borderRadius: BorderRadius.all(
                         Radius.circular(containerRadius),
                       ), // Making the container circular
@@ -572,9 +609,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardBoarderRadius: containerRadius,
                     cardHeight: 120,
                     cardWidth: double.infinity,
-                    colorOne: Color(0x22656566),
+                    colorOne: const Color(0x22656566),
                     colorTwo: screenDataProvider.isThemeDark
-                        ? Color(0x0AFFFFFF)
+                        ? const Color(0x0AFFFFFF)
                         : Colors.black12,
                   ),
             const SizedBox(
@@ -589,8 +626,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 120,
                           decoration: BoxDecoration(
                             color: screenDataProvider.isThemeDark
-                                ? Color(0x0AFFFFFF)
-                                : Color(0x11000000),
+                                ? const Color(0x0AFFFFFF)
+                                : const Color(0x11000000),
                             borderRadius: BorderRadius.all(
                               Radius.circular(containerRadius),
                             ),
@@ -656,14 +693,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   height: 15,
                                 ),
                                 sdCard_isConnected
-                                    ? Row(
+                                    ? const Row(
                                         children: [],
                                       )
-                                    : Text(
+                                    : const Text(
                                         'No Information',
                                         style: TextStyle(
                                           color: Color(0x88FFFFFF),
@@ -677,9 +714,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardBoarderRadius: containerRadius,
                           cardHeight: 120,
                           cardWidth: double.infinity,
-                          colorOne: Color(0x22656566),
+                          colorOne: const Color(0x22656566),
                           colorTwo: screenDataProvider.isThemeDark
-                              ? Color(0x0AFFFFFF)
+                              ? const Color(0x0AFFFFFF)
                               : Colors.black12,
                         ),
                 ),
@@ -693,8 +730,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 120,
                           decoration: BoxDecoration(
                             color: screenDataProvider.isThemeDark
-                                ? Color(0x0AFFFFFF)
-                                : Color(0x11000000),
+                                ? const Color(0x0AFFFFFF)
+                                : const Color(0x11000000),
                             borderRadius: BorderRadius.all(
                               Radius.circular(containerRadius),
                             ),
@@ -760,14 +797,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   height: 15,
                                 ),
                                 HDMI_isConnected
-                                    ? Row(
+                                    ? const Row(
                                         children: [],
                                       )
-                                    : Text(
+                                    : const Text(
                                         'No Information',
                                         style: TextStyle(
                                           color: Color(0x88FFFFFF),
@@ -781,14 +818,82 @@ class _HomeScreenState extends State<HomeScreen> {
                           cardBoarderRadius: containerRadius,
                           cardHeight: 120,
                           cardWidth: double.infinity,
-                          colorOne: Color(0x22656566),
+                          colorOne: const Color(0x22656566),
                           colorTwo: screenDataProvider.isThemeDark
-                              ? Color(0x0AFFFFFF)
+                              ? const Color(0x0AFFFFFF)
                               : Colors.black12,
                         ),
                 ),
               ],
             ),
+            const SizedBox(
+              height: 10,
+            ),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: screenDataProvider.isThemeDark
+                    ? const Color(0x0AFFFFFF)
+                    : const Color(0x11000000),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(containerRadius),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Access Specific Bytes (Hex & Char):',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+
+                  Text('Byte 1: ${byteDisplay(0)}'),
+                  Text('Byte 2: ${byteDisplay(1)}'),
+                  Text('Byte 3: ${byteDisplay(2)}'),
+                  Text('Byte 4: ${byteDisplay(3)}'),
+                  Text('Byte 5: ${byteDisplay(4)}'),
+                  Text('Byte 6: ${byteDisplay(5)}'),
+                  Text('Byte 7: ${byteDisplay(6)}'),
+                  Text('Byte 8: ${byteDisplay(7)}'),
+                  Text('Byte 9: ${byteDisplay(8)}'),
+                  Text('Byte 10: ${byteDisplay(9)}'),
+                  Text('Byte 11: ${byteDisplay(10)}'),
+                  Text('Byte 12: ${byteDisplay(11)}'),
+                  Text('Byte 13: ${byteDisplay(12)}'),
+                  Text('Byte 14: ${byteDisplay(13)}'),
+                  Text('Byte 15: ${byteDisplay(14)}'),
+
+                  SizedBox(
+                    height: 30,
+                  ),
+                  TextField(
+                    onChanged: (text) {
+                      setState(() {
+                        _dataToSend = text; // Update the dataToSend variable
+                      });
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Type data to send',
+                    ),
+                    controller: null, // No TextEditingController used here
+                  ),
+                  SizedBox(height: 8),
+                  // Send button
+                  ElevatedButton(
+                    onPressed: () {
+                      sendData(_dataToSend); // Send the data
+                    },
+                    child: Text('Send'),
+                  ),
+                ],
+              ),
+            )
           ],
         ),
       ),

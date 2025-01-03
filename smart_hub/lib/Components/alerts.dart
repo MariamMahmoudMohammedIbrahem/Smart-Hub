@@ -9,7 +9,7 @@ void alertFun(
     type: alertType,
     title: title,
     desc: descrip,
-    style: AlertStyle(
+    style: const AlertStyle(
       backgroundColor: Color(0x9929283A),
       alertElevation: 30,
       animationType: AnimationType.grow,
@@ -21,12 +21,12 @@ void alertFun(
           bottomLeft: Radius.circular(30),
         ),
       ),
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         color: Colors.white, // Set the title color here
         fontSize: 24, // Adjust the font size if necessary
         fontWeight: FontWeight.bold,
       ),
-      descStyle: const TextStyle(
+      descStyle: TextStyle(
         color: Colors.white70, // Set the description text color here
         fontSize: 16,
       ),

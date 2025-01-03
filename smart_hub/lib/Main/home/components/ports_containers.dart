@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../Components/provider.dart';
-import '../constants/home_constants.dart';
 
 class portsContainer extends StatelessWidget {
   const portsContainer({
@@ -30,21 +29,21 @@ class portsContainer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(
+        const SizedBox(
           height: 5,
         ),
         Text(
           main_Container_Name,
           style: TextStyle(
             color: screenDataProvider.isThemeDark
-                ? Color(0xBBffffff)
-                : Color(0x99000000),
+                ? const Color(0xBBffffff)
+                : const Color(0x99000000),
             fontWeight: FontWeight.w900,
             letterSpacing: 1,
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(
+        const SizedBox(
           height: 5,
         ),
         Row(
@@ -58,9 +57,9 @@ class portsContainer extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   color: screenDataProvider.isThemeDark
-                      ? Color(0x65000000)
-                      : Color(0x44000000),
-                  borderRadius: BorderRadius.all(
+                      ? const Color(0x65000000)
+                      : const Color(0x44000000),
+                  borderRadius: const BorderRadius.all(
                     Radius.circular(
                       15,
                     ),
@@ -84,8 +83,8 @@ class portsContainer extends StatelessWidget {
                                   Container_One_Name,
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0xccffffff)
-                                        : Color(0xaa000000),
+                                        ? const Color(0xccffffff)
+                                        : const Color(0xaa000000),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -115,7 +114,7 @@ class portsContainer extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 5,
                       ),
                       port_ChannelOne_isConnected
@@ -126,19 +125,19 @@ class portsContainer extends StatelessWidget {
                                   'Power: ',
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0x99FFFFFF)
-                                        : Color(0x99000000),
+                                        ? const Color(0x99FFFFFF)
+                                        : const Color(0x99000000),
                                     letterSpacing: 1,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  '${port_ChannelOne_Power}',
+                                  '$port_ChannelOne_Power',
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0xccFFFFFF)
-                                        : Color(0x99000000),
+                                        ? const Color(0xccFFFFFF)
+                                        : const Color(0x99000000),
                                   ),
                                 ),
                               ],
@@ -147,8 +146,8 @@ class portsContainer extends StatelessWidget {
                               'Not Connected',
                               style: TextStyle(
                                 color: screenDataProvider.isThemeDark
-                                    ? Color(0x66FFFFFF)
-                                    : Color(0x99000000),
+                                    ? const Color(0x66FFFFFF)
+                                    : const Color(0x99000000),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -165,9 +164,9 @@ class portsContainer extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   color: screenDataProvider.isThemeDark
-                      ? Color(0x65000000)
-                      : Color(0x44000000),
-                  borderRadius: BorderRadius.all(
+                      ? const Color(0x65000000)
+                      : const Color(0x44000000),
+                  borderRadius: const BorderRadius.all(
                     Radius.circular(
                       15,
                     ),
@@ -191,8 +190,8 @@ class portsContainer extends StatelessWidget {
                                   Container_Two_Name,
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0xccffffff)
-                                        : Color(0xaa000000),
+                                        ? const Color(0xccffffff)
+                                        : const Color(0xaa000000),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -222,7 +221,7 @@ class portsContainer extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 5,
                       ),
                       port_ChannelTwo_isConnected
@@ -233,8 +232,8 @@ class portsContainer extends StatelessWidget {
                                   'Power: ',
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0x99FFFFFF)
-                                        : Color(0x99000000),
+                                        ? const Color(0x99FFFFFF)
+                                        : const Color(0x99000000),
                                     letterSpacing: 1,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -244,8 +243,8 @@ class portsContainer extends StatelessWidget {
                                   '$port_ChannelTwo_Power',
                                   style: TextStyle(
                                     color: screenDataProvider.isThemeDark
-                                        ? Color(0xccFFFFFF)
-                                        : Color(0x99000000),
+                                        ? const Color(0xccFFFFFF)
+                                        : const Color(0x99000000),
                                   ),
                                 ),
                               ],
@@ -254,8 +253,8 @@ class portsContainer extends StatelessWidget {
                               'Not Connected',
                               style: TextStyle(
                                 color: screenDataProvider.isThemeDark
-                                    ? Color(0x66FFFFFF)
-                                    : Color(0x99000000),
+                                    ? const Color(0x66FFFFFF)
+                                    : const Color(0x99000000),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -264,7 +263,7 @@ class portsContainer extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               width: 10,
             ),
           ],

@@ -32,7 +32,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
   late final FlutterReactiveBle flutterReactiveBle;
   bool isScanning = false;
   late StreamSubscription<DiscoveredDevice> _scanStream;
-  List<DiscoveredDevice> _foundDevices = [];
+  final List<DiscoveredDevice> _foundDevices = [];
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
   late QualifiedCharacteristic _Characteristic;
@@ -41,7 +41,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
   late String SavedDeviceID;
   /* Local storage  */
   late final SharedPreferences prefs;
-  /**-------------------------Functions---------------------------------**/
+  /// -------------------------Functions---------------------------------*
 /*
   Title: Package init
   Description: Initializing everything at first as well as checks on
@@ -56,7 +56,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     await getFromLocalStorage();
   }
 
-  /**-------------------------------------------------------------------**/
+  /// -------------------------------------------------------------------*
   /*
   Title: Permission checker
   Description: checks if the required permission are given
@@ -82,7 +82,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     }
   }
 
-  /**-------------------------------------------------------------------**/
+  /// -------------------------------------------------------------------*
   /*
   Title: Animation
   Description: This function makes the animation of the battery
@@ -169,7 +169,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
     });
 
     try {
-      _connection = await flutterReactiveBle
+      _connection = flutterReactiveBle
           .connectToDevice(
         id: device.id,
         connectionTimeout: const Duration(seconds: 6),
@@ -401,7 +401,7 @@ class _welcome_loading_screenState extends State<welcome_loading_screen>
                   Text(
                     'SmartHUB App powered by EOIP\n $version',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white60, fontWeight: FontWeight.w500),
                   ),
                 ],

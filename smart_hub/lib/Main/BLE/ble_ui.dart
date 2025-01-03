@@ -9,10 +9,10 @@ import 'dart:async';
 import '../../Components/ble_alerts.dart';
 import '../../Constants/ble_constants.dart'; // For Timer functionality
 
-/**-----------------Global Variables-------------------------**/
+/// -----------------Global Variables-------------------------*
 bool g_ScreenReady = false;
 
-/**-----------------------------------------------------------**/
+/// -----------------------------------------------------------*
 class ble_ui_screen extends StatefulWidget {
   static String id = 'BLE_screen';
 
@@ -24,11 +24,11 @@ class ble_ui_screen extends StatefulWidget {
 
 class _ble_ui_screenState extends State<ble_ui_screen>
     with SingleTickerProviderStateMixin {
-  /**---------------------Local Variables Section----------------------**/
+  /// ---------------------Local Variables Section----------------------*
   final flutterReactiveBle = FlutterReactiveBle();
   late StreamSubscription<DiscoveredDevice> _scanStream;
   late Stream<BleStatus> _bleStatusStream;
-  List<DiscoveredDevice> _foundDevices = [];
+  final List<DiscoveredDevice> _foundDevices = [];
   late QualifiedCharacteristic _Characteristic;
   late DiscoveredDevice _connectedDevice;
   late StreamSubscription<ConnectionStateUpdate> _connection;
@@ -47,7 +47,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
   /* Local storage  */
   late final SharedPreferences prefs;
 
-  Map<String, StreamSubscription<ConnectionStateUpdate>> _subscriptions = {};
+  final Map<String, StreamSubscription<ConnectionStateUpdate>> _subscriptions = {};
   Map<String, bool> connectedDevices =
       {}; // Track connection state by device ID
 
@@ -57,7 +57,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
 
   /**------------------------------------------------------------------**/
 
-  /**------------------------Function Section--------------------------**/
+  /// ------------------------Function Section--------------------------*
   void ble_enable_state_check() {
     _bleStatusStream.listen((status) {
       if (status == BleStatus.ready) {
@@ -97,7 +97,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     });
 
     // Set a timer to stop the scan after 10 seconds
-    _scanTimer = Timer(Duration(seconds: 10), () {
+    _scanTimer = Timer(const Duration(seconds: 10), () {
       stopScan();
     });
   }
@@ -246,7 +246,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
     prefs = await SharedPreferences.getInstance();
   }
 
-  /**------------------------------------------------------------------**/
+  /// ------------------------------------------------------------------*
   @override
   void initState() {
     super.initState();
@@ -304,7 +304,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                 letterSpacing: 1.2,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             const Text(
@@ -317,7 +317,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
               ),
             ),
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             // Bluetooth Button with Heartbeat Animation
             GestureDetector(
               onTap: onScanButtonPressed,
@@ -352,20 +352,20 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                 ),
               ),
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             // Stop Button
             if (isScanning)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Found your device ? ',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 5,
                   ),
                   ElevatedButton(
@@ -384,7 +384,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                 ],
               ),
             // Scanned Devices (cards)
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             Expanded(
@@ -397,7 +397,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10),
                     child: Container(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.black38,
                         borderRadius: BorderRadius.circular(20),
@@ -421,18 +421,18 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                                 color: Colors.white,
                                 size: 40,
                               ),
-                              SizedBox(width: 15),
+                              const SizedBox(width: 15),
                               // Device Name and Service Name
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
+                                  SizedBox(
                                     width: 140,
                                     child: Text(
                                       device.name.isNotEmpty
                                           ? device.name
                                           : "Unknown device",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -441,7 +441,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                                   ),
                                   Text(
                                     ("ID: ${device.id}\nRSSI: ${device.rssi} dBm"),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white54,
                                       fontSize: 14,
                                     ),
@@ -534,18 +534,18 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                     width: double.infinity,
                     height: 1,
                     color: Colors.white30,
-                    child: Text(''),
+                    child: const Text(''),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Need help ?',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 1,
                       ),
                       TextButton(
@@ -553,7 +553,7 @@ class _ble_ui_screenState extends State<ble_ui_screen>
                           Navigator.pushReplacementNamed(
                               context, support_screen.id);
                         },
-                        child: Text(
+                        child: const Text(
                           'Support',
                           style: TextStyle(
                             color: Colors.blueAccent,

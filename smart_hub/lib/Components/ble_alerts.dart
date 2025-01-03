@@ -1,9 +1,7 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:smart_hub/Main/loading_screen.dart';
 
 void alertFunBLE(
     BuildContext context, String title, String descrip, AlertType alertType) {
@@ -12,7 +10,7 @@ void alertFunBLE(
     type: alertType,
     title: title,
     desc: descrip,
-    style: AlertStyle(
+    style: const AlertStyle(
       backgroundColor: Color(0x9929283A),
       alertElevation: 30,
       animationType: AnimationType.grow,
@@ -24,12 +22,12 @@ void alertFunBLE(
           bottomLeft: Radius.circular(30),
         ),
       ),
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         color: Colors.white, // Set the title color here
         fontSize: 24, // Adjust the font size if necessary
         fontWeight: FontWeight.bold,
       ),
-      descStyle: const TextStyle(
+      descStyle: TextStyle(
         color: Colors.white70, // Set the description text color here
         fontSize: 16,
       ),
@@ -54,10 +52,10 @@ void alertFunBLE(
         },
         radius: BorderRadius.circular(20),
         width: 130,
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               "Settings",
               style: TextStyle(color: Color(0xFFd5d1dd), fontSize: 20),
             ),
@@ -82,7 +80,7 @@ void alertFunBLEPerm(
     type: alertType,
     title: title,
     desc: descrip,
-    style: AlertStyle(
+    style: const AlertStyle(
       backgroundColor: Color(0x9929283A),
       alertElevation: 30,
       animationType: AnimationType.grow,
@@ -94,12 +92,12 @@ void alertFunBLEPerm(
           bottomLeft: Radius.circular(30),
         ),
       ),
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         color: Colors.white, // Set the title color here
         fontSize: 24, // Adjust the font size if necessary
         fontWeight: FontWeight.bold,
       ),
-      descStyle: const TextStyle(
+      descStyle: TextStyle(
         color: Colors.white70, // Set the description text color here
         fontSize: 16,
       ),
@@ -112,8 +110,8 @@ void alertFunBLEPerm(
         },
         radius: BorderRadius.circular(20),
         width: 130,
-        child: Center(
-          child: const Text(
+        child: const Center(
+          child: Text(
             "Restart",
             style: TextStyle(color: Color(0xFFd5d1dd), fontSize: 20),
           ),

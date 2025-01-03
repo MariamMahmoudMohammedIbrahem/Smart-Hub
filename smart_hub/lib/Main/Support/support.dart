@@ -9,9 +9,9 @@ class support_screen extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Support'),
+          title: const Text('Support'),
         ),
-        body: Column(
+        body: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

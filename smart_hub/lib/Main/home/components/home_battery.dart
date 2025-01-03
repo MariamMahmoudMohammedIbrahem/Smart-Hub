@@ -34,14 +34,14 @@ class batteryContainer extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color:
-            screenDataProvider.isThemeDark ? Color(0x15656566) : Colors.indigo,
+            screenDataProvider.isThemeDark ? const Color(0x15656566) : Colors.indigo,
         borderRadius: BorderRadius.all(
           Radius.circular(containerRadius),
         ),
       ),
       child: Column(
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -65,7 +65,7 @@ class batteryContainer extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${_connectedDevice.name}',
+                _connectedDevice.name,
                 style: TextStyle(
                   color: screenDataProvider.isThemeDark
                       ? Colors.white70
@@ -77,7 +77,7 @@ class batteryContainer extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -112,7 +112,7 @@ class batteryContainer extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
         ],
       ),
     );

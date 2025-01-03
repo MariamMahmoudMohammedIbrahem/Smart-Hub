@@ -19,7 +19,7 @@ class StatusCircleCard extends StatelessWidget {
     return Container(
       width: circleRadius,
       height: circleRadius,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white12,
         shape: BoxShape.circle,
       ),
@@ -28,12 +28,12 @@ class StatusCircleCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           circleIcon,
-          SizedBox(
+          const SizedBox(
             height: 5,
           ),
           Text(
             circleText,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
             ),
