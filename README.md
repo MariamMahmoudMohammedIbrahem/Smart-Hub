@@ -30,4 +30,4 @@ SmartHub is a Flutter-based mobile application designed to connect with a smart 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/SmartHub.git
+   git clone https://github.com/MoustafaAhmed01/SmartHUB
