@@ -1,6 +1,6 @@
 # SmartHub
 
-SmartHub is a Flutter-based mobile application designed to connect with a smart power bank via Bluetooth Low Energy (BLE). The application provides users with real-time data and insights about the power bank's performance and usage, offering a seamless way to monitor and manage its features.
+SmartHub is a Flutter-based mobile application that connects with a smart power bank via Bluetooth Low Energy (BLE). The application provides users with real-time data and insights about the power bank's performance and usage, offering a seamless way to monitor and manage its features.
 
 ## Features
 
