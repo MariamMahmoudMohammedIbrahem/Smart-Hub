@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../constants/battery_constants.dart';
+import 'package:smart_hub/commons.dart';
 
 class BatteryIndicator extends StatelessWidget {
   final double batteryLevel; // A value between 0 and 1
@@ -8,8 +6,7 @@ class BatteryIndicator extends StatelessWidget {
   final double circleRadius;
   final bool isDark;
 
-  const BatteryIndicator({
-    super.key,
+  const BatteryIndicator({super.key, 
     required this.batteryLevel,
     required this.isCharging,
     required this.circleRadius,
@@ -20,8 +17,6 @@ class BatteryIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     Color batteryColor;
     Color chargingColor;
-
-    /* This Condition handles the shape of the battery */
     if (batteryLevel > 0.75) {
       batteryColor = Colors.green;
       chargingColor = Colors.white;
@@ -55,7 +50,7 @@ class BatteryIndicator extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  /* The first layer for the battery */
+                  // Outer battery container (battery outline)
                   Container(
                     width: 45,
                     height: 20,
@@ -64,6 +59,8 @@ class BatteryIndicator extends StatelessWidget {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
+                  // Battery tip (small rectangular shape for the tip of the battery)
+
                   // Filled portion of the battery representing the current battery level
                   Padding(
                     padding: const EdgeInsets.only(
@@ -81,7 +78,7 @@ class BatteryIndicator extends StatelessWidget {
                       ),
                     ),
                   ),
-                  isCharging
+                  !isCharging
                       ? Positioned(
                           left: 16,
                           top: 2,

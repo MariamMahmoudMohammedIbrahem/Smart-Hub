@@ -1,13 +1,6 @@
-import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:slider_button/slider_button.dart';
-import 'package:smart_hub/Components/provider.dart';
 
-import '../Constants/AnimatedColors.dart';
-import '../Constants/version.dart';
+
+import '../commons.dart';
 
 class drawerList extends StatefulWidget {
   final bool isConnected;
@@ -272,6 +265,7 @@ class _drawerListState extends State<drawerList> {
                       ),
                     ),
                   ],
+
                 ],
               ),
             ),
@@ -371,6 +365,37 @@ class _drawerListState extends State<drawerList> {
                       ),
                     )
                   : Container(),
+            ),
+
+            // Settings for priorities
+            ListTile(
+              title: Row(
+                children: [
+                  Text(
+                    'Priorities Settings',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: screenDataProvider.isThemeDark
+                          ? Colors.white
+                          : Colors.black,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Icon(
+                    Icons.settings_rounded,
+                    color: screenDataProvider.isThemeDark
+                        ? Colors.white
+                        : Colors.black87,
+                  )
+                ],
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, 'Priorities_Screen');
+              },
             ),
           ],
         ),

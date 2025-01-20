@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+
+import '../../commons.dart';
 
 class support_screen extends StatelessWidget {
   static String id = 'Support_Screen';

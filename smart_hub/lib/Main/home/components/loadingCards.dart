@@ -1,5 +1,6 @@
-import 'package:card_loading/card_loading.dart';
-import 'package:flutter/material.dart';
+
+
+import '../../../commons.dart';
 
 class LoadingCards extends StatelessWidget {
   final double cardHeight;

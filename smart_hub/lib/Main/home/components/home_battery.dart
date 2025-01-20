@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:smart_hub/Main/home/components/status_circle_card.dart';
 
-import '../../../Components/provider.dart';
-import '../constants/home_constants.dart';
-import 'battery_level.dart';
+
+import '../../../commons.dart';
 
 class batteryContainer extends StatelessWidget {
   const batteryContainer({

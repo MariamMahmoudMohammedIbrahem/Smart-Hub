@@ -1,13 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_hub/Components/alerts.dart';
-import 'package:smart_hub/Main/Support/support.dart';
-import 'package:smart_hub/Main/home/home_screen.dart';
-import 'dart:async';
-import '../../Components/ble_alerts.dart';
-import '../../Constants/ble_constants.dart'; // For Timer functionality
+
+import '../../commons.dart';
 
 /// -----------------Global Variables-------------------------*
 bool g_ScreenReady = false;

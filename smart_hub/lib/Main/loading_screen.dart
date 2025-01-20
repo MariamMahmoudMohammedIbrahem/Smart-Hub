@@ -1,18 +1,6 @@
-import 'dart:async';
 
-import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_hub/Main/BLE/ble_ui.dart';
-import '../Components/alerts.dart';
-import '../Components/ble_alerts.dart';
-import '../Constants/AnimatedColors.dart';
 
-import '../Constants/ble_constants.dart';
-import '../Constants/version.dart';
-import 'home/home_screen.dart';
+import '../commons.dart';
 
 class welcome_loading_screen extends StatefulWidget {
   static String id = 'welcome_loading_screen';

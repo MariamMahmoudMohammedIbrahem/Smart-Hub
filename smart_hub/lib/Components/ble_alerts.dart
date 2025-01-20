@@ -1,7 +1,5 @@
-import 'package:app_settings/app_settings.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
+
+import '../commons.dart';
 
 void alertFunBLE(
     BuildContext context, String title, String descrip, AlertType alertType) {

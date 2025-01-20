@@ -1,15 +1,8 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:provider/provider.dart';
-import 'package:smart_hub/Main/BLE/ble_ui.dart';
-import 'package:smart_hub/Main/home/home_screen.dart';
-import 'package:smart_hub/Main/loading_screen.dart';
 
-import '../../Components/provider.dart';
-import 'Main/Support/support.dart';
+import 'package:smart_hub/Main/priorities_settings.dart';
+
+import 'commons.dart';
 
 late final StreamSubscription<ConnectionStateUpdate> connectionNUM;
 late final DiscoveredDevice connectedDevice;
@@ -50,6 +43,7 @@ class SmartHUB extends StatelessWidget {
                 characteristic: characteristic,
               ),
           support_screen.id: (context) => const support_screen(),
+          PrioritiesSettings.id: (context) => const PrioritiesSettings(),
         });
   }
 }

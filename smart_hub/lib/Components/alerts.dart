@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
-
+import 'package:smart_hub/commons.dart';
 void alertFun(
     BuildContext context, String title, String descrip, AlertType alertType) {
   Alert(

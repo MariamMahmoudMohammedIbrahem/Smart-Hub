@@ -1,20 +1,6 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_hub/Main/BLE/ble_ui.dart';
 
-import '../../Components/alerts.dart';
-import '../../Components/drawer_list.dart';
-import '../../Components/provider.dart';
-import 'components/home_battery.dart';
-import 'components/home_wireless.dart';
-import 'components/loadingCards.dart';
-import 'components/ports_containers.dart';
-import 'constants/home_constants.dart';
+import '../../commons.dart';
 
 class HomeScreen extends StatefulWidget implements PreferredSizeWidget {
   static String id = 'home_screen';
@@ -73,18 +59,16 @@ class _HomeScreenState extends State<HomeScreen> {
   double batteryPower = 60;
   bool battery_isCharging = false;
 
-  /* Wireless Part */
-  double wirelessPower = 23;
-  bool wireless_isCharging = false;
+  // bool wireless_isCharging = false;
   /* Ports Connection */
   /* Port C */
-  bool portC_ChannelOne_isConnected = true;
-  bool portC_ChannelTwo_isConnected = false;
+  // bool portC_ChannelOne_isConnected = true;
+  // bool portC_ChannelTwo_isConnected = false;
   double portC_ChannelOne_Power = 0;
   double portC_ChannelTwo_Power = 0;
   /* Port A */
-  bool portA_ChannelOne_isConnected = false;
-  bool portA_ChannelTwo_isConnected = false;
+  // bool portA_ChannelOne_isConnected = true;
+  // bool portA_ChannelTwo_isConnected = true;
   double portA_ChannelOne_Power = 0;
   double portA_ChannelTwo_Power = 0;
   /* Others */
@@ -478,6 +462,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            ///temp+battery+power
             !screenReady
                 ? batteryContainer(
                     screenDataProvider: screenDataProvider,
@@ -502,6 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 20,
             ),
+            ///wireless
             !screenReady
                 ? home_wireless(
                     isDark: screenDataProvider.isThemeDark,
@@ -543,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 25,
             ),
+            ///port c
             !screenReady
                 ? Container(
                     width: double.infinity, // Width of the circle
@@ -580,6 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 10,
             ),
+            ///port a
             !screenReady
                 ? Container(
                     width: double.infinity, // Width of the circle
@@ -619,6 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Row(
               children: [
+                ///sdcard
                 Expanded(
                   child: !screenReady
                       ? Container(
@@ -723,6 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(
                   width: 15,
                 ),
+                ///hdmi
                 Expanded(
                   child: !screenReady
                       ? Container(
@@ -826,74 +816,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: screenDataProvider.isThemeDark
-                    ? const Color(0x0AFFFFFF)
-                    : const Color(0x11000000),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(containerRadius),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    'Access Specific Bytes (Hex & Char):',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-
-                  Text('Byte 1: ${byteDisplay(0)}'),
-                  Text('Byte 2: ${byteDisplay(1)}'),
-                  Text('Byte 3: ${byteDisplay(2)}'),
-                  Text('Byte 4: ${byteDisplay(3)}'),
-                  Text('Byte 5: ${byteDisplay(4)}'),
-                  Text('Byte 6: ${byteDisplay(5)}'),
-                  Text('Byte 7: ${byteDisplay(6)}'),
-                  Text('Byte 8: ${byteDisplay(7)}'),
-                  Text('Byte 9: ${byteDisplay(8)}'),
-                  Text('Byte 10: ${byteDisplay(9)}'),
-                  Text('Byte 11: ${byteDisplay(10)}'),
-                  Text('Byte 12: ${byteDisplay(11)}'),
-                  Text('Byte 13: ${byteDisplay(12)}'),
-                  Text('Byte 14: ${byteDisplay(13)}'),
-                  Text('Byte 15: ${byteDisplay(14)}'),
-
-                  SizedBox(
-                    height: 30,
-                  ),
-                  TextField(
-                    onChanged: (text) {
-                      setState(() {
-                        _dataToSend = text; // Update the dataToSend variable
-                      });
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Type data to send',
-                    ),
-                    controller: null, // No TextEditingController used here
-                  ),
-                  SizedBox(height: 8),
-                  // Send button
-                  ElevatedButton(
-                    onPressed: () {
-                      sendData(_dataToSend); // Send the data
-                    },
-                    child: Text('Send'),
-                  ),
-                ],
-              ),
-            )
           ],
         ),
       ),
