@@ -1,47 +1,19 @@
+import '../../commons.dart';
 
+part 'drawer_controller.dart';
 
-import '../commons.dart';
-
-class drawerList extends StatefulWidget {
+class DrawerList extends StatefulWidget {
   final bool isConnected;
   final DiscoveredDevice connectedDevice;
 
-  const drawerList({
-    super.key,
-    required this.isConnected,
-    required this.connectedDevice, // Marking as required
-  });
+  const DrawerList(
+      {super.key, required this.isConnected, required this.connectedDevice});
 
   @override
-  _drawerListState createState() => _drawerListState();
+  createState() => _DrawerList();
 }
 
-class _drawerListState extends State<drawerList> {
-  bool isThemeExpanded = false; // Controls the expand/collapse
-  bool isConnectionExpanded = false;
-  late final SharedPreferences prefs;
-
-  /*
-  Title: Save in Local Storage
-  Description: This function uses shared preference package to
-  save data
-   */
-  Future<void> saveToLocalStorage(bool screenTheme) async {
-    await prefs.setBool('Theme', screenTheme); // save the device id
-  }
-
-  Future<void> initPackages() async {
-    prefs = await SharedPreferences.getInstance();
-    /* keeps listening to the connection */
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    initPackages();
-  }
-
+class _DrawerList extends DrawerListController {
   @override
   Widget build(BuildContext context) {
     final screenDataProvider = Provider.of<ScreenDataProvider>(context);
@@ -265,7 +237,6 @@ class _drawerListState extends State<drawerList> {
                       ),
                     ),
                   ],
-
                 ],
               ),
             ),
@@ -368,34 +339,47 @@ class _drawerListState extends State<drawerList> {
             ),
 
             // Settings for priorities
-            ListTile(
-              title: Row(
+            AnimatedSize(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Priorities Settings',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: screenDataProvider.isThemeDark
-                          ? Colors.white
-                          : Colors.black,
-                      fontWeight: FontWeight.w700,
+                  ListTile(
+                    title: Row(
+                      children: [
+                        Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: screenDataProvider.isThemeDark
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Icon(
+                          Icons.settings_rounded,
+                          color: screenDataProvider.isThemeDark
+                              ? Colors.white
+                              : Colors.black87,
+                        )
+                      ],
                     ),
+                    onTap: () {
+                      /*setState(() {
+                        isSettingsExpanded =
+                            !isSettingsExpanded; // Toggle expand/collapse
+                      });*/
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, 'settings_screen');
+                    },
                   ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Icon(
-                    Icons.settings_rounded,
-                    color: screenDataProvider.isThemeDark
-                        ? Colors.white
-                        : Colors.black87,
-                  )
                 ],
               ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'Priorities_Screen');
-              },
             ),
           ],
         ),

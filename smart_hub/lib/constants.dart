@@ -53,13 +53,7 @@ String version = 'v1.0.0';
 
 /* Wireless charger constants */
 
-/// Home Constants *
-String portA_Name = 'PORT A';
-String portC_Name = 'PORT C';
 
-/// Port Containers name *
-String Port_First_Container_Name = 'P1';
-String Port_Second_Container_Name = 'P2';
 
 /// Port A*
 bool portA_ChannelOne_isConnected = true;
@@ -69,3 +63,5 @@ bool portC_ChannelOne_isConnected = true;
 bool portC_ChannelTwo_isConnected = true;
 /// Wireless Part*
 double wirelessPower = 0;
+/// -----------------Global Variables-------------------------*
+// bool g_ScreenReady = false;

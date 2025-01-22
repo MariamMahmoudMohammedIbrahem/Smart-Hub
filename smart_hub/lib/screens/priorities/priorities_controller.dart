@@ -1,14 +1,7 @@
-import '../commons.dart';
+part of 'priorities_screen.dart';
 
-class PrioritiesSettings extends StatefulWidget {
-  static String id = 'Priorities_Screen';
-  const PrioritiesSettings({super.key});
+abstract class PrioritiesController extends State<PrioritiesScreen> {
 
-  @override
-  State<PrioritiesSettings> createState() => _PrioritiesSettingsState();
-}
-
-class _PrioritiesSettingsState extends State<PrioritiesSettings> {
 
   late List<MapEntry<Key, Widget>> entries;
 
@@ -149,44 +142,5 @@ class _PrioritiesSettingsState extends State<PrioritiesSettings> {
     }
 
     return widgetMap;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenDataProvider = Provider.of<ScreenDataProvider>(context);
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold,),),
-        centerTitle: true,
-        flexibleSpace: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(30),  // Bottom left corner rounded
-            bottomRight: Radius.circular(30), // Bottom right corner rounded
-          ),
-          child: Container(
-            color: screenDataProvider.isThemeDark ? Colors.black26 : Colors.indigo,
-          ),
-        ),
-      ),
-      body: ReorderableListView(
-        onReorder: (oldIndex, newIndex) {
-          setState(() {
-            if (newIndex > oldIndex) {
-              newIndex -= 1; // Adjust for index shift caused by the reorder.
-            }
-            final entry = entries.removeAt(oldIndex);
-            entries.insert(newIndex, entry);
-            print(entries);
-          });
-        },
-        children: entries.map((entry) {
-          return ListTile(
-            key: entry.key,
-            title: entry.value,
-          );
-        }).toList(),
-      ),
-    );
   }
 }

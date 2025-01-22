@@ -1,7 +1,5 @@
 
 
-import 'package:smart_hub/Main/priorities_settings.dart';
-
 import 'commons.dart';
 
 late final StreamSubscription<ConnectionStateUpdate> connectionNUM;
@@ -9,6 +7,7 @@ late final DiscoveredDevice connectedDevice;
 late final QualifiedCharacteristic characteristic;
 
 void main() {
+  Preferences().initPackages();
   runApp(
     /*  Phoenix Package used to restart the app https://pub.dev/packages/flutter_phoenix */
     Phoenix(
@@ -32,18 +31,19 @@ class SmartHUB extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
         /* This screen is responsible for loading all packages used before the app launch */
-        initialRoute: welcome_loading_screen.id,
+        initialRoute: LoadingScreen.id,
         routes: {
-          welcome_loading_screen.id: (context) =>
-              const welcome_loading_screen(),
-          ble_ui_screen.id: (context) => const ble_ui_screen(),
+          LoadingScreen.id: (context) =>
+              const LoadingScreen(),
+          BleScreen.id: (context) => const BleScreen(),
           HomeScreen.id: (context) => HomeScreen(
                 connectionNUM: connectionNUM,
                 connectedDevice: connectedDevice,
                 characteristic: characteristic,
               ),
-          support_screen.id: (context) => const support_screen(),
-          PrioritiesSettings.id: (context) => const PrioritiesSettings(),
+          SupportScreen.id: (context) => const SupportScreen(),
+          PrioritiesScreen.id: (context) => const PrioritiesScreen(),
+          SettingsScreen.id: (context) => const SettingsScreen(),
         });
   }
 }
