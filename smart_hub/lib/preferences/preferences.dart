@@ -1,8 +1,9 @@
 import '../commons.dart';
 
-late final SharedPreferences prefs;
+
 
 class Preferences {
+  late final SharedPreferences prefs;
 /*
   Title: Save in Local Storage
   Description: This function uses shared preference package to

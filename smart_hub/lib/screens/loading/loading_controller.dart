@@ -369,6 +369,7 @@ abstract class LoadingScreenController extends State<LoadingScreen> with SingleT
     batteryLevel = 0;
     batteryAnimation();
     initPackage();
+    Preferences().initPackages();
   }
 
   @override

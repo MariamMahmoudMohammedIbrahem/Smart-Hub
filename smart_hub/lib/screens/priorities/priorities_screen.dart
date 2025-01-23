@@ -16,6 +16,7 @@ class _PrioritiesScreen extends PrioritiesController {
     final screenDataProvider = Provider.of<ScreenDataProvider>(context);
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         automaticallyImplyLeading: true,
         title: const Text('Power Settings', style: TextStyle(fontWeight: FontWeight.bold,),),
         centerTitle: true,
